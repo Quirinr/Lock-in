@@ -74,11 +74,12 @@ DIM bin1 as long
 DIM output_min, output_max, bin_size as float
 DIM IV_gain1 as float
 DIM ADC_gain1 as long
+DIM ADC_actual_gain1 as long
 
 INIT:
   avgcounter = 0
   totalcurrent1 = 0
-  timecounter = 1
+  timecounter = 0
     
   'convert bin to V
   output_min = -10
@@ -90,6 +91,7 @@ INIT:
     
   'ADC gains
   ADC_gain1 = DATA_11[1] 
+  ADC_actual_gain1 = 2^ADC_gain1
   IF (ADC_gain1 = 0) THEN
     Set_Mux1(00000b) 'set MUX1
   ENDIF
@@ -115,12 +117,13 @@ EVENT:
   'read data
   bin1 = READ_ADC24(1)/64
   START_CONV(11b)
-  totalcurrent1 = totalcurrent1 + ((output_min + (bin1 * bin_size)) * IV_gain1 / 2^ADC_gain1)
+  totalcurrent1 = totalcurrent1 + ((output_min + (bin1 * bin_size)) * IV_gain1 / ADC_actual_gain1)
       
   avgcounter = avgcounter + 1
 
   ' get averaging
   IF(avgcounter = PAR_21) THEN
+    
     FPAR_1 = totalcurrent1 / PAR_21
     DATA_2[timecounter]= FPAR_1
     totalcurrent1 = 0
@@ -128,7 +131,7 @@ EVENT:
     avgcounter = 0
     PAR_19 = timecounter 
     
-    IF (timecounter = PAR_14 + 1) THEN
+    IF (timecounter = PAR_14) THEN
       end
     ENDIF
     
