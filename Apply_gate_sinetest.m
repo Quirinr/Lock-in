@@ -25,26 +25,18 @@ Gate.process = 'Fixed_AO';
 Waveform.output = 2;
 Waveform.process = 'Waveform_AO';
 
-%% Initialize
-Settings = Init(Settings);
-
 %% Initialize ADwin
+Settings = Init(Settings);
 Settings = Init_ADwin(Settings, Gate, Waveform);
 
-%%
-%V = linspace(-2,2,1001);
-%V_bin = convert_V_to_bin(V, Settings.output_min, Settings.output_max, Settings.output_resolution);
-%SetData_Double(1, V_bin, 1);
+%% create one period sine wave vector, given processdelay and wanted freuquency
+Set_Processdelay(6,3000);
+Processdelay = Get_Processdelay(6)
+f_wanted = 250;
 
-
-
-%create Wave, given processdelay and wanted freuquency
-Processdelay = 3000;
-f_wanted = 0.1;
-
-f_process = 1/(Processdelay*(3 + 1/3)*10E-9); %NOTE:: MAY INTRODUCE PRECISION LOSS DUE TO HIGH DIFFERENCE FLOATING POINT MULTIPLICATION
+f_process = 1/(Processdelay*(3 + 1/3)*1E-9);
 wave_vec_length = f_process/f_wanted;
-wave_vec_length = round(wave_vec_length);
+wave_vec_length = round(wave_vec_length)
 q = 1:wave_vec_length;
 wave = sin(q*2*pi/wave_vec_length); %NOTE:: MAY PRODUCE INNACURATE FREQUENCY
 
@@ -55,12 +47,11 @@ SetData_Double(1, wave_bin, 1);
 
 
 %% set gate voltage
-fprintf('%s - Ramping Gate to %1.2fV...', datetime('now'), Gate.setV)
-Gate = Apply_fixed_voltage(Settings, Gate);
+%fprintf('%s - Ramping Gate to %1.2fV...', datetime('now'), Gate.setV)
+%Gate = Apply_fixed_voltage(Settings, Gate);
 fprintf('done\n')
 
 %% set gate sine voltage
 Set_Par(8, Waveform.output);
 Set_Par(23,numel(wave_bin));
-Set_Processdelay(6,3000);
 Start_Process(6);

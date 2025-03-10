@@ -54,8 +54,8 @@ DIM actual_V as long
 DIM voltagecounter as long
 
 INIT:
-  voltagecounter = 1
-  actual_V = DATA_1[1]
+  voltagecounter = 0
+  actual_V = DATA_1[0]
   
   'set DAC to first value
   DAC(PAR_8, actual_V)
@@ -67,7 +67,7 @@ EVENT:
   IF (voltagecounter <= PAR_23) THEN 
     DAC(PAR_8, DATA_1[voltagecounter])
   ELSE
-    end
+    voltagecounter = 0
   ENDIF
   
   voltagecounter = voltagecounter + 1
