@@ -75,7 +75,8 @@ DIM output_min, output_max, bin_size as float
 DIM IV_gain1 as float
 DIM ADC_gain1 as long
 DIM ADC_actual_gain1 as long
-DIM ratio_gain1 as float
+DIM readout_constant as float
+DIM outmin_shift as long
 
 INIT:
   avgcounter = 0
@@ -85,7 +86,7 @@ INIT:
   'convert bin to V
   output_min = -10
   output_max = 9.99969
-  bin_size = (output_max-output_min) / ((2^PAR_10) *64) ' /64 is there because it safes operations in the event block, not because binsize is 64times smaller
+  bin_size = (output_max-output_min) / ((2^PAR_10))
           
   'set DIO input and outputs. 0-15 as inputs, 16-31 as outputs; 0=input, 1=output
   'P2_DigProg(PAR_7, 1100b)
@@ -98,7 +99,7 @@ INIT:
   ENDIF
   IF (ADC_gain1 = 1) THEN
     Set_Mux1(01000b) 'set MUX1
-  ENDIF
+  ENDIF 
   IF (ADC_gain1 = 2) THEN
     Set_Mux1(10000b) 'set MUX1
   ENDIF
@@ -110,7 +111,8 @@ INIT:
   IV_gain1 = 10^(-1*FPAR_27)  
   
   'calculation outside event block
-  ratio_gain1 = IV_gain1 / ADC_actual_gain1
+    readout_constant = bin_size * IV_gain1 / (ADC_actual_gain1 * 64 * PAR_21) 'already avergaes over Par_21
+    outmin_shift = (output_min * IV_gain1) / ADC_actual_gain1 'no Par_21 within since it cancels itself out 
   
   ' start first conversion
   START_CONV(11b)
@@ -119,19 +121,19 @@ INIT:
 EVENT:
 
   'read data
-  bin1 = READ_ADC24(1) '/64 is now in bin_size since it safes operations
+  bin1 = READ_ADC24(1) '/64 is now in readout_constant since it safes operations
   START_CONV(11b)
-  totalcurrent1 = totalcurrent1 + (output_min + (bin1 * bin_size)) * ratio_gain1 'took ratio calculation outside event loop, prof said something of removing gain completely? ask!
+  totalcurrent1 = totalcurrent1 + bin1 'took all calculations into averaging block
       
   avgcounter = avgcounter + 1
 
   ' get averaging
   IF(avgcounter = PAR_21) THEN
     
-    FPAR_1 = totalcurrent1 / PAR_21
+    FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
     DATA_2[timecounter]= FPAR_1
     totalcurrent1 = 0
-    timecounter = timecounter + 1 'could remove timecounter var and use par_19 instead 
+    timecounter = timecounter + 1 'could remove timecounter var and use par_19 instead: would reduce readability for 1 operation speedup
     avgcounter = 0
     PAR_19 = timecounter 
     
