@@ -75,16 +75,17 @@ DIM output_min, output_max, bin_size as float
 DIM IV_gain1 as float
 DIM ADC_gain1 as long
 DIM ADC_actual_gain1 as long
+DIM ratio_gain1 as float
 
 INIT:
   avgcounter = 0
   totalcurrent1 = 0
-  timecounter = 0
+  timecounter = 1
     
   'convert bin to V
   output_min = -10
   output_max = 9.99969
-  bin_size = (output_max-output_min) / (2^PAR_10)
+  bin_size = (output_max-output_min) / ((2^PAR_10) *64) ' /64 is there because it safes operations in the event block, not because binsize is 64times smaller
           
   'set DIO input and outputs. 0-15 as inputs, 16-31 as outputs; 0=input, 1=output
   'P2_DigProg(PAR_7, 1100b)
@@ -108,6 +109,9 @@ INIT:
   'set IV gain
   IV_gain1 = 10^(-1*FPAR_27)  
   
+  'calculation outside event block
+  ratio_gain1 = IV_gain1 / ADC_actual_gain1
+  
   ' start first conversion
   START_CONV(11b)
   WAIT_EOC(11b)
@@ -115,9 +119,9 @@ INIT:
 EVENT:
 
   'read data
-  bin1 = READ_ADC24(1)/64
+  bin1 = READ_ADC24(1) '/64 is now in bin_size since it safes operations
   START_CONV(11b)
-  totalcurrent1 = totalcurrent1 + ((output_min + (bin1 * bin_size)) * IV_gain1 / ADC_actual_gain1)
+  totalcurrent1 = totalcurrent1 + (output_min + (bin1 * bin_size)) * ratio_gain1 'took ratio calculation outside event loop, prof said something of removing gain completely? ask!
       
   avgcounter = avgcounter + 1
 
@@ -127,7 +131,7 @@ EVENT:
     FPAR_1 = totalcurrent1 / PAR_21
     DATA_2[timecounter]= FPAR_1
     totalcurrent1 = 0
-    timecounter = timecounter + 1
+    timecounter = timecounter + 1 'could remove timecounter var and use par_19 instead 
     avgcounter = 0
     PAR_19 = timecounter 
     
