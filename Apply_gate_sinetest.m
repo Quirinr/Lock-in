@@ -30,15 +30,16 @@ Settings = Init(Settings);
 Settings = Init_ADwin(Settings, Gate, Waveform);
 
 %% create one period sine wave vector, given processdelay and wanted freuquency
-Set_Processdelay(6,3000);
-Processdelay = Get_Processdelay(6)
+Set_Processdelay(6,6000);
+Processdelay = Get_Processdelay(6);
 f_wanted = 250;
+f_shift = 0; %freq shift in radian 
 
 f_process = 1/(Processdelay*(3 + 1/3)*1E-9);
 wave_vec_length = f_process/f_wanted;
 wave_vec_length = round(wave_vec_length)
 q = 1:wave_vec_length;
-wave = sin(q*2*pi/wave_vec_length); %NOTE:: MAY PRODUCE INNACURATE FREQUENCY
+wave = sin(q*2*pi/wave_vec_length + f_shift); %NOTE: Rounding Error, TODO: calculate it
 
 
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
