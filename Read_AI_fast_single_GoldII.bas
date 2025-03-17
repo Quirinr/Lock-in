@@ -80,7 +80,7 @@ DIM outmin_shift as long
 
 INIT:
   avgcounter = 0
-  totalcurrent1 = 0
+  pAR_19 = 0 'par19 acts as timecounter, hope this is fine
   timecounter = 1
     
   'convert bin to V
@@ -110,9 +110,9 @@ INIT:
   'set IV gain
   IV_gain1 = 10^(-1*FPAR_27)  
   
-  'calculation outside event block
-    readout_constant = bin_size * IV_gain1 / (ADC_actual_gain1 * 64 * PAR_21) 'already avergaes over Par_21
-    outmin_shift = (output_min * IV_gain1) / ADC_actual_gain1 'no Par_21 within since it cancels itself out 
+  'calculations outside event block
+  readout_constant = bin_size * IV_gain1 / (ADC_actual_gain1 * 64 * PAR_21) 'already averages over Par_21
+  outmin_shift = (output_min * IV_gain1) / ADC_actual_gain1 'no Par_21 within since it cancels itself out 
   
   ' start first conversion
   START_CONV(11b)
@@ -131,13 +131,12 @@ EVENT:
   IF(avgcounter = PAR_21) THEN
     
     FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
-    DATA_2[timecounter]= FPAR_1
+    DATA_2[PAR_19]= FPAR_1 'par19 is timecounter
     totalcurrent1 = 0
-    timecounter = timecounter + 1 'could remove timecounter var and use par_19 instead: would reduce readability for 1 operation speedup
+    PAR_19 = PAR_19 + 1 'par19 is timecounter
     avgcounter = 0
-    PAR_19 = timecounter 
     
-    IF (timecounter = PAR_14) THEN
+    IF (PAR_19 = PAR_14) THEN
       end
     ENDIF
     
