@@ -59,6 +59,7 @@
 DIM DATA_1[200000] as long     'voltage output 
 DIM DATA_2[2000000] as float   'voltage input
 DIM DATA_11[8] as long
+DIM DATA_10[8] as long
 
 DIM totalcurrent1 as float
 DIM avgcounter,timecounter as long
@@ -70,6 +71,7 @@ DIM ADC_actual_gain1 as long
 DIM readout_constant as float
 DIM outmin_shift as long
 DIM voltagecounter as long
+DIM actual_V as float
 
 INIT:
   avgcounter = 0
@@ -86,18 +88,7 @@ INIT:
   'ADC gains
   ADC_gain1 = DATA_11[1] 
   ADC_actual_gain1 = 2^ADC_gain1
-  IF (ADC_gain1 = 0) THEN
-    Set_Mux1(00000b) 'set MUX1
-  ENDIF
-  IF (ADC_gain1 = 1) THEN
-    Set_Mux1(01000b) 'set MUX1
-  ENDIF 
-  IF (ADC_gain1 = 2) THEN
-    Set_Mux1(10000b) 'set MUX1
-  ENDIF
-  IF (ADC_gain1 = 3) THEN
-    Set_Mux1(11000b) 'set MUX1
-  ENDIF
+  
   
   voltagecounter = 0
   actual_V = DATA_1[0]
@@ -132,9 +123,11 @@ EVENT:
     
   voltagecounter = voltagecounter + 1
   
+  '----------------------------------------------------------------------------------
   'this is where the input will be read
-  bin1 = P2_READ_ADC24(Par_5) '/64 is now in readout_constant since it safes operations
-  P2_START_CONV(Par_5, 11b)
+  P2_Read_ADCF8_24B(PAR_5, DATA_10, 1) 'I think second input is the destination where the read value is saved in:: NEEDS MOR EINPUTS? WHAT?S THE MEANING
+  bin1 = DATA_10[1]
+  P2_START_CONVF(Par_5, 0000000011111111b) 'there was 11b
   totalcurrent1 = totalcurrent1 + bin1 'took all calculations into averaging block
       
   avgcounter = avgcounter + 1
@@ -153,4 +146,5 @@ EVENT:
     ENDIF
     
   ENDIF
-   
+FINISH:
+
