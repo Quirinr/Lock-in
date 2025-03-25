@@ -1,4 +1,4 @@
-%% clear
+%% clearDIO
 clear
 close all hidden
 clc
@@ -9,15 +9,14 @@ Settings.sample = '3.9kohm_lp_3_1000_gain';
 Settings.ADC_gain = [0 0 0 0 0 0 0 0]; % 2^N
 Settings.get_sample_T = ''; % {'', 'Lakeshore336', 'Lakeshore325', 'Oxford_ITC'}
 Settings.type = 'Timetrace';
-Settings.ADwin = 'GoldII'; % GoldII or ProII
+Settings.ADwin = 'ProII'; % GoldII or ProII
 
 Timetrace.runtime = 50;      % s
 Timetrace.scanrate = 500000;       % Hz
-Timetrace.points_av = 1000;        % points
+Timetrace.points_av = 100;        % points
 Timetrace.process_number = 2;
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_single';
-
 %% Initialize
 Settings = Init(Settings);
 
@@ -27,6 +26,7 @@ Settings = Init_ADwin(Settings, Timetrace);
 %% set up timetrace
 % set parameters
 [Timetrace.process_delay, ~] = get_delays(Timetrace.scanrate, 0, Settings.clockfrequency);  % get_delays
+Timetrace.process_delay;
 Timetrace.time_per_point = Timetrace.points_av / Timetrace.scanrate; % 1/sampling rate
 Timetrace.sampling_rate = 1 / Timetrace.time_per_point;
 Timetrace.runtime_counts = ceil(Timetrace.sampling_rate * Timetrace.runtime);

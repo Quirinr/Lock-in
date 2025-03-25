@@ -10,24 +10,17 @@ Settings.ADC = {1e6, 'off', 'off','off', 'off', 'off', 'off', 'off'};
 Settings.auto = ''; % FEMTO
 Settings.ADC_gain = [0 0 0 0 0 0 0 0]; % 2^N
 Settings.get_sample_T = ''; % {'', 'Lakeshore336', 'Lakeshore325', 'Oxford_ITC'}
-Settings.type = 'IV';
-Settings.ADwin = 'GoldII'; % GoldII or ProII
+Settings.type = 'Waveform'; %!! CHECK THIS !!
+Settings.ADwin = 'ProII'; % GoldII or ProII
 Settings.res4p = 0;     % 4 point measurement
 Settings.T = [10];   %;
-
-Gate.startV = 5;          % V
-Gate.setV = -5;            % V
-Gate.ramp_rate = 1;       % V/s
-Gate.V_per_V = 1;          % V/V0
-Gate.output = 2;            % AO channel
-Gate.process = 'Fixed_AO';
 
 Waveform.output = 2;
 Waveform.process = 'Waveform_AO';
 
 %% Initialize ADwin
 Settings = Init(Settings);
-Settings = Init_ADwin(Settings, Gate, Waveform);
+Settings = Init_ADwin(Settings, Waveform);
 
 %% create one period sine wave vector, given processdelay and wanted freuquency
 Set_Processdelay(6,6000);
@@ -35,7 +28,7 @@ Processdelay = Get_Processdelay(6);
 f_wanted = 250;
 f_shift = 0; %freq shift in radian 
 
-f_process = 1/(Processdelay*(3 + 1/3)*1E-9);
+f_process = Settings.clockfrequency/(Processdelay);
 wave_vec_length = f_process/f_wanted;
 wave_vec_length = round(wave_vec_length)
 q = 1:wave_vec_length;
@@ -53,6 +46,7 @@ SetData_Double(1, wave_bin, 1);
 fprintf('done\n')
 
 %% set gate sine voltage
+Set_Par(6, Settings.AO_address);
 Set_Par(8, Waveform.output);
 Set_Par(23,numel(wave_bin));
 Start_Process(6);
