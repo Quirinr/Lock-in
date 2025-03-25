@@ -58,8 +58,8 @@
 
 DIM DATA_1[200000] as long     'voltage output 
 DIM DATA_2[2000000] as float   'voltage input
-DIM DATA_11[8] as long
-DIM DATA_10[8] as long
+DIM DATA_11[8] as long         'ADC Gain
+DIM DATA_10[8] as long         'input of channels is saved in this
 
 DIM totalcurrent1 as float
 DIM avgcounter,timecounter as long
@@ -75,7 +75,6 @@ DIM actual_V as float
 
 INIT:
   avgcounter = 0
-  pAR_19 = 0 'par19 acts as timecounter, hope this is fine
     
   'convert bin to V
   output_min = -10
@@ -90,8 +89,8 @@ INIT:
   ADC_actual_gain1 = 2^ADC_gain1
   
   
-  voltagecounter = 0
-  actual_V = DATA_1[0]
+  voltagecounter = 1
+  actual_V = DATA_1[1]
   
   'set DAC to first value
   P2_Write_DAC(Par_6, PAR_8, actual_V)
@@ -105,7 +104,7 @@ INIT:
   outmin_shift = (output_min * IV_gain1) / ADC_actual_gain1 'no Par_21 within since it cancels itself out 
   
   'start first conversion
-  P2_START_CONV(11b)
+  P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this bin for
   P2_WAIT_EOC(11b)
   
 EVENT:
@@ -125,8 +124,8 @@ EVENT:
   
   '----------------------------------------------------------------------------------
   'this is where the input will be read
-  P2_Read_ADCF8_24B(PAR_5, DATA_10, 1) 'I think second input is the destination where the read value is saved in:: NEEDS MOR EINPUTS? WHAT?S THE MEANING
-  bin1 = DATA_10[1]
+  P2_Read_ADCF8_24B(PAR_5, DATA_10, 1) 'whats the 3. input for?
+  bin1 = DATA_10[2] 'index of input channel i suppose
   P2_START_CONVF(Par_5, 0000000011111111b) 'there was 11b
   totalcurrent1 = totalcurrent1 + bin1 'took all calculations into averaging block
       
@@ -136,15 +135,17 @@ EVENT:
   IF(avgcounter = PAR_21) THEN
     
     FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
-    DATA_2[PAR_19]= FPAR_1 'par19 is timecounter
+    DATA_2[timecounter]= FPAR_1 
     totalcurrent1 = 0
-    PAR_19 = PAR_19 + 1 'par19 is timecounter
+    timecounter = timecounter + 1
+    PAR_19 = timecounter
     avgcounter = 0
     
-    IF (PAR_19 = PAR_14) THEN
+    IF (timecounter = PAR_14) THEN
       end
     ENDIF
     
   ENDIF
 FINISH:
-
+  P2_Write_DAC(PAR_6, PAR_8, DATA_1[voltagecounter])
+  P2_Start_DAC(PAR_6)

@@ -11,7 +11,7 @@ Settings.type = 'Timetrace'; % (.type influences only plot labels)
 Settings.ADwin = 'ProII'; % GoldII or ProII
 
 Timetrace.runtime = 50;      % s
-Timetrace.scanrate = 500000;       % Hz
+Timetrace.scanrate = 10000;       % Hz
 Timetrace.points_av = 100;        % points
 Timetrace.process_number = 2;
 Timetrace.model ='ADwin';
@@ -24,11 +24,12 @@ Waveform.output = 2;
 %% Initialize
 Settings = Init(Settings);
 %% Initialize ADwin
-Settings = Init_ADwin(Settings, Timetrace); %(add Waveform??)
+Settings = Init_ADwin(Settings, Timetrace);
 
 %% set up timetrace
 % set parameters
 [Timetrace.process_delay, ~] = get_delays(Timetrace.scanrate, 0, Settings.clockfrequency);  % get_delays
+Timetrace.process_delay;
 Timetrace.time_per_point = Timetrace.points_av / Timetrace.scanrate; % 1/sampling rate
 Timetrace.sampling_rate = 1 / Timetrace.time_per_point;
 Timetrace.runtime_counts = ceil(Timetrace.sampling_rate * Timetrace.runtime);
@@ -39,10 +40,11 @@ Timetrace.time.ADwin = (0:Timetrace.time_per_point:(Timetrace.runtime_counts-1)*
 % set ADCs
 Set_Par(10, Settings.input_resolution);
 
+
 % set addresses
 Set_Par(5,Settings.AI_address);
 Set_Par(6,Settings.AO_address);
-Set_Par(7,Settings.DIO_address); %(needed??)
+Set_Par(7,Settings.DIO_address); %(needed?)
 
 % set amplifier settings
 Set_FPar(27, 0);
@@ -51,14 +53,14 @@ Set_FPar(27, 0);
 Set_Par(14, Timetrace.runtime_counts);
 Set_Par(21, Timetrace.points_av);
 
-%% set up sinewave
 Set_Processdelay(2, Timetrace.process_delay);
+%% set up sinewave
 
 Processdelay = Get_Processdelay(2);
 f_wanted = 150;
 phi_shift = 0; %phase shift in radian change to degrees
 
-f_process = 1/(Processdelay*(3 + 1/3)*1E-9);
+f_process = Settings.clockfrequency/(Processdelay);
 wave_vec_length = f_process/f_wanted;
 wave_vec_length = round(wave_vec_length)
 q = 1:wave_vec_length;
@@ -67,7 +69,9 @@ wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Sett
 
 SetData_Double(1, wave_bin, 1);
 Set_Par(8, Waveform.output);
-Set_Par(23,numel(wave_bin));
+Set_Par(23,numel(wave_bin)); 
+
+
 %% set ADC gains
 SetData_Double(11, Settings.ADC_gain, 1);
 %% run measurement
@@ -75,7 +79,7 @@ Start_Process(2);
 Timetrace.index = 1;
 %% get current and show plot
 Settings.N_ADC = 1;
-Settings.ADC_idx = 2; %changed it to 2 since 1 was really weird
+Settings.ADC_idx = 1; %changed it to 2 since 1 was really weird
 Timetrace = Realtime_timetrace(Settings, Timetrace, Settings.type);
 
 fprintf('done\n')
