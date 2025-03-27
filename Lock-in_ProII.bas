@@ -56,13 +56,13 @@
 
 #INCLUDE ADwinPro_all.Inc
 
-DIM DATA_1[200000] as long     'voltage output 
+DIM DATA_1[2000000] as long     'voltage output 
 DIM DATA_2[2000000] as float   'voltage input
 DIM DATA_11[8] as long         'ADC Gain
 DIM DATA_10[8] as long         'input of channels is saved in this
 
 DIM totalcurrent1 as float
-DIM avgcounter,timecounter as long
+DIM avgcounter as long
 DIM bin1 as long
 DIM output_min, output_max, bin_size as float
 DIM IV_gain1 as float
@@ -70,12 +70,13 @@ DIM ADC_gain1 as long
 DIM ADC_actual_gain1 as long
 DIM readout_constant as float
 DIM outmin_shift as long
-DIM voltagecounter as long
 DIM actual_V as float
 
 INIT:
   avgcounter = 0
-    
+  PAR_19 = 0
+  PAR_25 = 0      'Par_25 is now voltagecounter for outputsine
+  
   'convert bin to V
   output_min = -10
   output_max = 9.99969
@@ -89,8 +90,7 @@ INIT:
   ADC_actual_gain1 = 2^ADC_gain1
   
   
-  voltagecounter = 1
-  actual_V = DATA_1[1]
+  actual_V = DATA_1[0]
   
   'set DAC to first value
   P2_Write_DAC(Par_6, PAR_8, actual_V)
@@ -109,18 +109,18 @@ INIT:
   
 EVENT:
   
-  'this is where the outputsine gets created
-  PAR_24 = actual_V   
-  PAR_25 = voltagecounter 'why not define par_25 as voltagecounter??
+  'for debugging
+  'PAR_24 = actual_V  
   
-  IF (voltagecounter <= PAR_23) THEN 
-    P2_Write_DAC(Par_6, PAR_8, DATA_1[voltagecounter])
+  'this is where the outputsine gets created
+  IF (PAR_25 < PAR_23) THEN                      'Par_25 is now voltagecounter for outputsine
+    P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])
     P2_Start_DAC(PAR_6)
   ELSE
-    voltagecounter = 0
+    PAR_25 = 0
   ENDIF
     
-  voltagecounter = voltagecounter + 1
+  PAR_25 = PAR_25 + 1   'Par_25 is now voltagecounter for outputsine
   
   '----------------------------------------------------------------------------------
   'this is where the input will be read
@@ -135,17 +135,16 @@ EVENT:
   IF(avgcounter = PAR_21) THEN
     
     FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
-    DATA_2[timecounter]= FPAR_1 
+    DATA_2[PAR_19]= FPAR_1    'Par_19 is now timecounter
     totalcurrent1 = 0
-    timecounter = timecounter + 1
-    PAR_19 = timecounter
+    PAR_19 = PAR_19 + 1       'Par_19 is now timecounter
     avgcounter = 0
     
-    IF (timecounter = PAR_14) THEN
+    IF (PAR_19 = PAR_14) THEN'Par_19 is now timecounter
       end
     ENDIF
     
   ENDIF
 FINISH:
-  P2_Write_DAC(PAR_6, PAR_8, DATA_1[voltagecounter])
+  P2_Write_DAC(PAR_6, PAR_8, DATA_1[PAR_25])  'Par_25 is now voltagecounter for outputsine
   P2_Start_DAC(PAR_6)

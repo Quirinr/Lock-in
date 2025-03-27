@@ -11,7 +11,7 @@ Settings.type = 'Timetrace'; % (.type influences only plot labels)
 Settings.ADwin = 'ProII'; % GoldII or ProII
 
 Timetrace.runtime = 50;      % s
-Timetrace.scanrate = 10000;       % Hz
+Timetrace.scanrate = 500000;       % Hz
 Timetrace.points_av = 100;        % points
 Timetrace.process_number = 2;
 Timetrace.model ='ADwin';
@@ -67,7 +67,7 @@ q = 1:wave_vec_length;
 wave = sin(q*2*pi/wave_vec_length + phi_shift); %NOTE: Rounding Error, TODO: calculate it
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
-SetData_Double(1, wave_bin, 1);
+SetData_Double(1, wave_bin, 0);
 Set_Par(8, Waveform.output);
 Set_Par(23,numel(wave_bin)); 
 
