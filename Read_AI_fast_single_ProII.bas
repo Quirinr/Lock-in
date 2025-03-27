@@ -70,7 +70,7 @@ DIM DATA_11[8] as long
 DIM DATA_10[8] as long
 
 DIM totalcurrent1 as float
-DIM avgcounter,timecounter as long
+DIM avgcounter as long
 DIM bin1 as long
 DIM output_min, output_max, bin_size as float
 DIM IV_gain1 as float
@@ -119,13 +119,12 @@ EVENT:
   IF(avgcounter = PAR_21) THEN
     
     FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
-    DATA_2[timecounter]= FPAR_1 
+    DATA_2[PAR_19]= FPAR_1 'Par_19 is timecounter
     totalcurrent1 = 0
-    timecounter = timecounter + 1
-    PAR_19 = timecounter
+    PAR_19 = PAR_19 + 1    'Par_19 is now timecounter
     avgcounter = 0
     
-    IF (timecounter = PAR_14) THEN
+    IF (PAR_19 = PAR_14) THEN    'Par_19 is now timecounter
       end
     ENDIF
     

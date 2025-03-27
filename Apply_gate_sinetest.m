@@ -2,7 +2,6 @@
 clear
 close all hidden
 clc
-
 %% Settings
 Settings.save_dir = 'C:\Users\quiri\UserData';         
 Settings.sample = '100kOhm'; %A2-GatetoGate G0b
@@ -10,13 +9,15 @@ Settings.ADC = {1e6, 'off', 'off','off', 'off', 'off', 'off', 'off'};
 Settings.auto = ''; % FEMTO
 Settings.ADC_gain = [0 0 0 0 0 0 0 0]; % 2^N
 Settings.get_sample_T = ''; % {'', 'Lakeshore336', 'Lakeshore325', 'Oxford_ITC'}
-Settings.type = 'Waveform'; %!! CHECK THIS !!
+Settings.type = 'Waveform';
 Settings.ADwin = 'ProII'; % GoldII or ProII
 Settings.res4p = 0;     % 4 point measurement
 Settings.T = [10];   %;
 
 Waveform.output = 2;
 Waveform.process = 'Waveform_AO';
+
+
 
 %% Initialize ADwin
 Settings = Init(Settings);
@@ -36,7 +37,7 @@ wave = sin(q*2*pi/wave_vec_length + f_shift); %NOTE: Rounding Error, TODO: calcu
 
 
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
-SetData_Double(1, wave_bin, 1);
+SetData_Double(1, wave_bin, 0);
 
 
 

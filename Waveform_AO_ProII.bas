@@ -51,11 +51,10 @@
 DIM DATA_1[200000] as long     'voltage output 
 
 DIM actual_V as long
-DIM voltagecounter as long
 
 INIT:
-  voltagecounter = 0
-  actual_V = DATA_1[0]
+  PAR_25 = 0 'Par_25 acts as voltagecounter
+  actual_V = DATA_1[0] 'starts at 0 since then you do not have to do Par_23 + 1 and save an operation
   
   'set DAC to first value
   P2_Write_DAC(Par_6, PAR_8, actual_V)
@@ -63,19 +62,19 @@ INIT:
   
 EVENT:
   
-  'this is where the outputsine gets created
-  PAR_24 = actual_V   
-  PAR_25 = voltagecounter 'why not define par_25 as voltagecounter??
+  'for debugging
+  'PAR_24 = actual_V   
   
-  IF (voltagecounter <= PAR_23) THEN 
-    P2_Write_DAC(Par_6, PAR_8, DATA_1[voltagecounter])
+  'this is where the outputsine gets created
+  IF (PAR_25 < PAR_23)  THEN 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])'Par_25 acts as voltagecounter
     P2_Start_DAC(PAR_6)
   ELSE
-    voltagecounter = 0
+    PAR_25 = 0'Par_25 acts as voltagecounter
   ENDIF
     
-  voltagecounter = voltagecounter + 1
+  PAR_25 = PAR_25 + 1'Par_25 acts as voltagecounter
   
 FINISH:
-  P2_Write_DAC(PAR_6, PAR_8, DATA_1[voltagecounter])
+  P2_Write_DAC(PAR_6, PAR_8, DATA_1[PAR_25])'Par_25 acts as voltagecounter
   P2_Start_DAC(PAR_6)
