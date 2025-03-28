@@ -57,14 +57,15 @@ Set_Processdelay(2, Timetrace.process_delay);
 %% set up sinewave
 
 Processdelay = Get_Processdelay(2);
-f_wanted = 150;
+f_wanted = 200;
 phi_shift = 0; %phase shift in radian change to degrees
+Amplitude = 1; %Amplitude of sinewave
 
-f_process = Settings.clockfrequency/(Processdelay);
+f_process = Settings.clockfrequency/(Processdelay * 10); % *10 because in ADBASIC only every 10th processcycle the voltage gets changed
 wave_vec_length = f_process/f_wanted;
 wave_vec_length = round(wave_vec_length)
 q = 1:wave_vec_length;
-wave = sin(q*2*pi/wave_vec_length + phi_shift); %NOTE: Rounding Error, TODO: calculate it
+wave = Amplitude * sin(q*2*pi/wave_vec_length + phi_shift); %NOTE: Rounding Error, TODO: calculate it
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
 SetData_Double(1, wave_bin, 0);
@@ -76,10 +77,30 @@ Set_Par(23,numel(wave_bin));
 SetData_Double(11, Settings.ADC_gain, 1);
 %% run measurement
 Start_Process(2);
-Timetrace.index = 1;
+
 %% get current and show plot
 Settings.N_ADC = 1;
-Settings.ADC_idx = 1; %changed it to 2 since 1 was really weird
+Settings.ADC_idx = 1;
 Timetrace = Realtime_timetrace(Settings, Timetrace, Settings.type);
 
-fprintf('done\n')
+%% Processed Data
+
+%Idea: since sine is set at 50kHz but measured signal at 5kHz we can only
+%multiply them after downsampling our sine:
+
+%wave = wave(1:10:end);
+
+
+
+%measured_signal = GetData_Double(2, 0, Timetrace.sampling_rate * Timetrace.runtime); %extracts input signal from Adwin
+
+
+
+%lowpass(input_signal, 150 ,Timetrace.sampling_rate)
+
+%mixed_signal = input_signal *
+
+
+
+
+

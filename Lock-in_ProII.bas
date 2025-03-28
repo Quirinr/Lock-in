@@ -71,8 +71,10 @@ DIM ADC_actual_gain1 as long
 DIM readout_constant as float
 DIM outmin_shift as long
 DIM actual_V as float
+DIM counter as long
 
 INIT:
+  counter = 0
   avgcounter = 0
   PAR_19 = 0
   PAR_25 = 0      'Par_25 is now voltagecounter for outputsine
@@ -106,22 +108,30 @@ INIT:
   'start first conversion
   P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this bin for
   P2_WAIT_EOC(11b)
+  P2_Write_DAC(Par_6, PAR_8, DATA_1[0])
+  P2_Start_DAC(PAR_6)
   
 EVENT:
   
   'for debugging
   'PAR_24 = actual_V  
   
-  'this is where the outputsine gets created
-  IF (PAR_25 < PAR_23) THEN                      'Par_25 is now voltagecounter for outputsine
-    P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])
-    P2_Start_DAC(PAR_6)
-  ELSE
-    PAR_25 = 0
-  ENDIF
-    
-  PAR_25 = PAR_25 + 1   'Par_25 is now voltagecounter for outputsine
   
+  IF (counter - (counter / 10) * 10 = 0)THEN'every 10'th time voltage is set, INNEFICIENT is there a MOD operator??
+ 
+    'this is where the outputsine gets created
+    IF (PAR_25 < PAR_23) THEN                      'Par_25 is now voltagecounter for outputsine
+      P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])
+      P2_Start_DAC(PAR_6)
+    ELSE
+      PAR_25 = 0
+      P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])
+      P2_Start_DAC(PAR_6)
+    ENDIF
+    
+    PAR_25 = PAR_25 + 1   'Par_25 is now voltagecounter for outputsine
+  ENDIF
+  counter = counter + 1
   '----------------------------------------------------------------------------------
   'this is where the input will be read
   P2_Read_ADCF8_24B(PAR_5, DATA_10, 1) 'whats the 3. input for?
