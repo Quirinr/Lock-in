@@ -57,7 +57,7 @@ Set_Processdelay(2, Timetrace.process_delay);
 %% set up sinewave
 
 Processdelay = Get_Processdelay(2);
-f_wanted = 7;
+f_wanted = 200;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1; %Amplitude of sinewave
 
@@ -97,8 +97,11 @@ mixed_signal_quadrature = measured_signal * Amplitude .* sin(q*2*pi/period_lengt
 
 %% Lock-in calculations
 
-filtered_signal_inphase = lowpass(mixed_signal_inphase, 0.001, Timetrace.sampling_rate);
-filtered_signal_quadrature = lowpass(mixed_signal_quadrature, 0.001, Timetrace.sampling_rate);
+filtered_signal_inphase = lowpass(mixed_signal_inphase, 10, Timetrace.sampling_rate);
+filtered_signal_quadrature = lowpass(mixed_signal_quadrature, 10, Timetrace.sampling_rate);
+
+
+%% 
 
 R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
 Theta = atan(filtered_signal_quadrature ./filtered_signal_inphase);
@@ -106,11 +109,18 @@ Theta = atan(filtered_signal_quadrature ./filtered_signal_inphase);
 
 %hold on
 %plot(abs(fft(measured_signal)), LineStyle="-", Color= 'w')
-%plot(abs(fft(mixed_signal)), LineStyle='-', Color='b')
+%plot(abs(fft(mixed_signal_inphase)), LineStyle='-', Color='b')
 %plot(abs(fft(filtered_signal_inphase)), LineStyle='-', Color='r')
 %hold off
 
-%plot(R(1:2000))
-%plot(Theta(1:2000))
 
+hold on
+%plot(filtered_signal_inphase(1:2*round(period_length)))
+%plot(filtered_signal_quadrature(1:2*round(period_length)))
+%plot(Theta(1:2*round(period_length)))
+%plot(R(1:2*round(period_length)))
+
+%plot(Theta)
+%plot(R)
+hold off
 
