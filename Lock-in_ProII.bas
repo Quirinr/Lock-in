@@ -117,7 +117,7 @@ EVENT:
   'PAR_24 = actual_V  
   
   
-  IF (counter - (counter / 10) * 10 = 0)THEN'every 10'th time voltage is set, INNEFICIENT is there a MOD operator??
+  IF (counter = 10)THEN'every 10'th time voltage is set, INNEFICIENT is there a MOD operator??
  
     'this is where the outputsine gets created
     IF (PAR_25 < PAR_23) THEN                      'Par_25 is now voltagecounter for outputsine
@@ -130,6 +130,7 @@ EVENT:
     ENDIF
     
     PAR_25 = PAR_25 + 1   'Par_25 is now voltagecounter for outputsine
+    counter = 0
   ENDIF
   counter = counter + 1
   '----------------------------------------------------------------------------------
