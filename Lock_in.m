@@ -57,7 +57,7 @@ Set_Processdelay(2, Timetrace.process_delay);
 %% set up sinewave
 
 Processdelay = Get_Processdelay(2);
-f_wanted = 200;
+f_wanted = 5;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1; %Amplitude of sinewave
 
@@ -83,7 +83,7 @@ Settings.N_ADC = 1;
 Settings.ADC_idx = 1;
 Timetrace = Realtime_timetrace(Settings, Timetrace, Settings.type);
 
-%% Processing Data
+%% Mixing
 measured_signal = GetData_Double(2, 0, Timetrace.sampling_rate * Timetrace.runtime); %extracts input signal from Adwin
 
 %Idea: since sine is set at 50kHz but measured signal at 5kHz -> sine must be changed accordingly
@@ -97,11 +97,21 @@ mixed_signal_quadrature = measured_signal * Amplitude .* sin(q*2*pi/period_lengt
 
 %% Lock-in calculations
 
-filtered_signal_inphase = lowpass(mixed_signal_inphase, 10, Timetrace.sampling_rate);
-filtered_signal_quadrature = lowpass(mixed_signal_quadrature, 10, Timetrace.sampling_rate);
+%filtered_signal_inphase = lowpass(mixed_signal_inphase,   1, Timetrace.sampling_rate); %non optimal, design filter yourself
+%filtered_signal_quadrature = lowpass(mixed_signal_quadrature, 1, Timetrace.sampling_rate); %non optimal, design filter yourself
 
+cutoff = 1;
 
+% Design a 4th-order Butterworth lowpass filter
+[b, a] = butter(4, cutoff / (Timetrace.sampling_rate / 2), 'low');
+
+% Apply the filter to remove high frequencies
+filtered_signal_inphase = filtfilt(b, a, mixed_signal_inphase);  % Zero-phase filtering
+filtered_signal_quadrature = filtfilt(b, a, mixed_signal_quadrature);
 %% 
+
+filtered_signal_inphase_RMS = filtered_signal_inphase/sqrt(2);
+filtered_signal_quadrature_RMS = filtered_signal_quadrature/sqrt(2);
 
 R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
 Theta = atan(filtered_signal_quadrature ./filtered_signal_inphase);
@@ -120,7 +130,9 @@ hold on
 %plot(Theta(1:2*round(period_length)))
 %plot(R(1:2*round(period_length)))
 
+plot(R)
 %plot(Theta)
-%plot(R)
+%plot(filtered_signal_inphase(1:500))
+%plot(mixed_signal_inphase(1:500))
 hold off
 
