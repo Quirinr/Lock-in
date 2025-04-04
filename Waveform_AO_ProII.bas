@@ -49,32 +49,45 @@
 '#INCLUDE C:\Users\lab405\Desktop\Lakeshore-ADwin-GoldII\Matlab\ADwin_script\Additional_functions.Inc
 
 DIM DATA_1[200000] as long     'voltage output 
-
-DIM actual_V as long
+DIM DATA_3[200000] as long     'compresssion array
+DIM actual_V as long   
+DIM repetitions as long
 
 INIT:
   PAR_25 = 0 'Par_25 acts as voltagecounter
   actual_V = DATA_1[0] 'starts at 0 since then you do not have to do Par_23 + 1 and save an operation
-  
+  repetitions = DATA_3[0]
   'set DAC to first value
   P2_Write_DAC(Par_6, PAR_8, actual_V)
   P2_Start_DAC(PAR_6)
-  
 EVENT:
   
   'for debugging
-  'PAR_24 = actual_V   
+  PAR_24 = actual_V   
+  
   
   'this is where the outputsine gets created
-  IF (PAR_25 < PAR_23)  THEN 'Par_25 acts as voltagecounter
+  IF (PAR_25 < PAR_23) THEN
+    
+    IF (repetitions > 0)  THEN
+      P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])'Par_25 acts as voltagecounter
+      P2_Start_DAC(PAR_6)
+      repetitions = repetitions -1
+    ELSE
+      PAR_25 = PAR_25 + 1'Par_25 acts as voltagecounter
+      repetitions = DATA_3[PAR_25]
+      P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])'Par_25 acts as voltagecounter
+      P2_Start_DAC(PAR_6)
+      repetitions = repetitions -1
+    ENDIF
+    
+  ELSE 'PAR_25 is reset to 0 to start new voltage period
+    PAR_25 = 0
+    repetitions = DATA_3[PAR_25]
     P2_Write_DAC(Par_6, PAR_8, DATA_1[PAR_25])'Par_25 acts as voltagecounter
     P2_Start_DAC(PAR_6)
-  ELSE
-    PAR_25 = 0'Par_25 acts as voltagecounter
+    repetitions = repetitions -1
   ENDIF
-    
-  PAR_25 = PAR_25 + 1'Par_25 acts as voltagecounter
-  
 FINISH:
   P2_Write_DAC(PAR_6, PAR_8, DATA_1[PAR_25])'Par_25 acts as voltagecounter
   P2_Start_DAC(PAR_6)
