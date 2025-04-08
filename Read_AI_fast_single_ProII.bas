@@ -50,6 +50,7 @@
 'PAR_17 = loops to wait to limit AO rate
 'PAR_18 = actual time counter
 'PAR_19 = actual V counter
+'PAR_27 = initial phase shift to reference signal
 'measureflag = measurements flag
 
 'Outputs:
@@ -81,7 +82,7 @@ DIM outmin_shift as long
 
 INIT:
   avgcounter = 0
-  pAR_19 = 0 'par19 acts as timecounter, hope this is fine
+  PAR_19 = 0 'par19 acts as timecounter, hope this is fine
     
   'convert bin to V
   output_min = -10
@@ -103,6 +104,7 @@ INIT:
   outmin_shift = (output_min * IV_gain1) / ADC_actual_gain1 'no Par_21 within since it cancels itself out 
   
   ' start first conversion
+  PAR_27 = PAR_25 'documents starting phase shift
   P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this bin for
   P2_WAIT_EOC(11b)
   
