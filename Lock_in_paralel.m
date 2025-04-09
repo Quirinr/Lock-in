@@ -3,6 +3,9 @@ clear
 close all hidden
 clc
 %% Settings
+
+MODE = 1; % 0 for offline filtering, 1 for realtime filtering
+
 Settings.save_dir = 'C:\Users\quiri\UserData';         
 Settings.sample = '100kOhm'; %A2-GatetoGate G0b
 Settings.ADC = {1e6, 'off', 'off','off', 'off', 'off', 'off', 'off'};
@@ -31,7 +34,7 @@ Settings = Init_ADwin(Settings, Waveform, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 200;      
+f_wanted = 75;      
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
 wave_vec_length = 1000;
@@ -82,68 +85,108 @@ Set_Par(21, Timetrace.points_av);
 SetData_Double(11, Settings.ADC_gain, 1);
 %% run sine
 Start_Process(6);
+%% set realtime filering parameters
+
+if MODE == 1
+
+    cutoff = 1;
+    [b, a] = butter(4, cutoff / (Timetrace.sampling_rate / 2), 'low');
+    Set_Par(28, round(wave_vec_length/4));
+    SetData_Double(3, [b, a], 0); %set filter parameters
+    SetData_Double(4, [wave/Amplitude, wave/Amplitude], 0); %define normalized reference for mixing, double length to simplify cosine in ADBASIC
+    SetData_Double(2, [0, 0, 0, 0], 0); %sets the first 4 entries of DATA_2 to 0 for filtering purposes
+    SetData_Double(5, [0, 0, 0, 0], 0); %sets the first 4 entries of DATA_5 to 0 for filtering purposes
+    SetData_Double(6, [0, 0, 0, 0], 0); %sets the first 4 entries of DATA_6 to 0 for filtering purposes
+    SetData_Double(7, [0, 0, 0, 0], 0); %sets the first 4 entries of DATA_7 to 0 for filtering purposes
+
+
+end
+
 %% run timetrace
 Start_Process(2);
 Timetrace.index = 1;
 %% get current and show plot
 Settings.N_ADC = 1;
-Settings.ADC_idx = 1; %changed it to 2 since 1 was really weird
+Settings.ADC_idx = 1;
 Timetrace = Realtime_timetrace(Settings, Timetrace, Settings.type);
+
+%% realtimefiltering plot
+if MODE == 1
+    
+    filtered_signal_inphase = GetData_Double(6, 4, Timetrace.sampling_rate * Timetrace.runtime);
+    filtered_signal_quadrature = GetData_Double(5, 4, Timetrace.sampling_rate * Timetrace.runtime);
+    hold on
+    figure
+    plot(filtered_signal_inphase, Color='w');
+    figure
+    plot(filtered_signal_quadrature, Color='r')
+    hold off
+
+end
 
 
 %% Mixing
-measured_signal = GetData_Double(2, 0, Timetrace.sampling_rate * Timetrace.runtime); %extracts input signal from Adwin
+if MODE ==  0
+    measured_signal = GetData_Double(2, 0, Timetrace.sampling_rate * Timetrace.runtime); %extracts input signal from Adwin
 
-%Idea: since sine is set at 50kHz but measured signal set at different frequency -> sine must be changed accordingly
-%calculates how many datapoints in measured_signal represent 1 period
-period_length = wave_vec_length * Timetrace.sampling_rate * Processdelay6 /Settings.clockfrequency% Lvoltage * samplingrate/Voltagesettingfreq
-q = 1:length(measured_signal);%helper for sine multiplication
+    %Idea: since sine is set at 50kHz but measured signal set at different frequency -> sine must be changed accordingly
+    %calculates how many datapoints in measured_signal represent 1 period
+    period_length = wave_vec_length * Timetrace.sampling_rate * Processdelay6 /Settings.clockfrequency;% Lvoltage * samplingrate/Voltagesettingfreq
+    q = 1:length(measured_signal);%helper for sine multiplication
 
-timeshift = Get_Par(27); %shift of reference signal to measuring begin
-%initial_phase_shift = timeshift/wave_vec_length * 360;
-q = q + timeshift;
+    timeshift = Get_Par(27); %shift of reference signal to measuring begin
+    %initial_phase_shift = timeshift/wave_vec_length * 360;
+    q = q + timeshift;
 
-%mixes measured_signal with a sine of same freq as our initial wave + the initial shift due to parallel implementation
-mixed_signal_inphase = measured_signal * Amplitude .* sin(q*2*pi/period_length + phi_shift*2*pi/360);
-mixed_signal_quadrature = measured_signal * Amplitude .* sin(q*2*pi/period_length + pi/2 + phi_shift*2*pi/360);
+    %mixes measured_signal with a sine of same freq as our initial wave + the initial shift due to parallel implementation
+    mixed_signal_inphase = measured_signal * Amplitude .* sin(q*2*pi/period_length + phi_shift*2*pi/360);
+    mixed_signal_quadrature = measured_signal * Amplitude .* sin(q*2*pi/period_length + pi/2 + phi_shift*2*pi/360);
 
-%% Lock-in calculations
+    % Lock-in calculations
 
-%filtered_signal_inphase = lowpass(mixed_signal_inphase,   1, Timetrace.sampling_rate); %non optimal, design filter yourself
-%filtered_signal_quadrature = lowpass(mixed_signal_quadrature, 1, Timetrace.sampling_rate); %non optimal, design filter yourself
+    %filtered_signal_inphase = lowpass(mixed_signal_inphase,   1, Timetrace.sampling_rate); %non optimal, design filter yourself
+    %filtered_signal_quadrature = lowpass(mixed_signal_quadrature, 1, Timetrace.sampling_rate); %non optimal, design filter yourself
 
-cutoff = 1;
+    cutoff = 1;
 
-% Design a 4th-order Butterworth lowpass filter
-[b, a] = butter(4, cutoff / (Timetrace.sampling_rate / 2), 'low');
+    % Design a 4th-order Butterworth lowpass filter
+    [b, a] = butter(4, cutoff / (Timetrace.sampling_rate / 2), 'low');
 
-% Apply the filter to remove high frequencies
-filtered_signal_inphase = filtfilt(b, a, mixed_signal_inphase);  % Zero-phase filtering
-filtered_signal_quadrature = filtfilt(b, a, mixed_signal_quadrature);
+    % Apply the filter to remove high frequencies
+    filtered_signal_inphase = filtfilt(b, a, mixed_signal_inphase);  % Zero-phase filtering
+    filtered_signal_quadrature = filtfilt(b, a, mixed_signal_quadrature);
 
-R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
-Theta = atan(filtered_signal_quadrature ./filtered_signal_inphase);
+    R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
+    Theta = atan(filtered_signal_quadrature ./filtered_signal_inphase);
 
-%% plotting
+    %% plotting
+    filtered_signal_inphase_RMS = filtered_signal_inphase/sqrt(2);
+    filtered_signal_quadrature_RMS = filtered_signal_quadrature/sqrt(2);
 
-filtered_signal_inphase_RMS = filtered_signal_inphase/sqrt(2);
-filtered_signal_quadrature_RMS = filtered_signal_quadrature/sqrt(2);
-
-hold on
-%plot(abs(fft(measured_signal)), LineStyle="-", Color= 'w')
-%plot(abs(fft(mixed_signal_inphase)), LineStyle='-', Color='b')
-%plot(abs(fft(filtered_signal_inphase)), LineStyle='-', Color='r')
-hold off
+    figure;
+    hold on
+    %plot(abs(fft(measured_signal)), LineStyle="-", Color= 'w')
+    %plot(abs(fft(mixed_signal_inphase)), LineStyle='-', Color='b')
+    %plot(abs(fft(filtered_signal_inphase)), LineStyle='-', Color='r')
+    hold off
 
 
-hold on
-%plot(filtered_signal_inphase(1:2*round(period_length)))
-%plot(filtered_signal_quadrature(1:2*round(period_length)))
-%plot(Theta(1:2*round(period_length)))
-%plot(R(1:2*round(period_length)))
-%plot(R)
-%plot(Theta)
-%plot(filtered_signal_inphase(1:15*period_length))
-%plot(mixed_signal_inphase(1:500))
-hold off
+    hold on
+    plot(mixed_signal_inphase)
+    plot(R)
+    %plot(filtered_signal_quadrature_RMS)
+    %plot(Theta(1:2*round(period_length)))
+    %plot(R(1:2*round(period_length)))
+    %plot(R)
+    %plot(Theta)
+    %plot(filtered_signal_inphase(1:15*period_length))
+    %plot(mixed_signal_inphase(1:500))
+    hold off
+end
+
+
+
+
+
+
 
