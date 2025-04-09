@@ -51,6 +51,7 @@
 'PAR_18 = actual time counter
 'PAR_19 = actual V counter
 'PAR_27 = initial phase shift to reference signal
+'PAR_28 = quarter period length of reference (used for cosine)
 'measureflag = measurements flag
 
 'Outputs:
@@ -66,7 +67,12 @@
 #INCLUDE ADwinPro_all.Inc
 '#INCLUDE C:\Users\lab405\Desktop\Lakeshore-ADwin-GoldII\Matlab\ADwin_script\Additional_functions.Inc
 
-DIM DATA_2[2000000] as float
+DIM DATA_2[2000000] as float 'measured and mixed data inphase
+DIM DATA_3[2000000] as float 'filter parameters
+DIM DATA_4[200000] as float 'plain reference frequency for mixing
+DIM DATA_5[2000000] as float 'quadrature filtered signal
+DIM DATA_6[2000000] as float 'inphase filtered signal
+DIM DATA_7[2000000] as float 'measured and mixed data quadrature
 DIM DATA_11[8] as long
 DIM DATA_10[8] as long
 
@@ -82,7 +88,7 @@ DIM outmin_shift as long
 
 INIT:
   avgcounter = 0
-  PAR_19 = 0 'par19 acts as timecounter, hope this is fine
+  PAR_19 = 4 'par19 acts as timecounter, hope this is fine
     
   'convert bin to V
   output_min = -10
@@ -121,12 +127,24 @@ EVENT:
   IF(avgcounter = PAR_21) THEN
     
     FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
-    DATA_2[PAR_19]= FPAR_1 'Par_19 is timecounter
+    DATA_2[PAR_19]= FPAR_1 * DATA_4[PAR_25] 'mixing with plain reference, PAR_19 is timecounter
+    DATA_7[PAR_19]= FPAR_1 * DATA_4[PAR_25+PAR_28]
+    
+    'NOTE PUT IN FOR LOOP
+    'realtime filtering inphase
+    DATA_6[PAR_19] = DATA_3[0]*DATA_2[PAR_19] + DATA_3[1]*DATA_2[PAR_19-1] + DATA_3[2]*DATA_2[PAR_19-2] + DATA_3[3]*DATA_2[PAR_19-3] + DATA_3[4]*DATA_2[PAR_19-4]
+    DATA_6[PAR_19] = DATA_6[PAR_19] - DATA_3[6]*DATA_6[PAR_19-1] - DATA_3[7]*DATA_6[PAR_19-2] - DATA_3[8]*DATA_6[PAR_19-3] - DATA_3[9]*DATA_6[PAR_19-4]
+    'realtime filtering quadrature
+    DATA_5[PAR_19] = DATA_3[0]*DATA_7[PAR_19] + DATA_3[1]*DATA_7[PAR_19-1] + DATA_3[2]*DATA_7[PAR_19-2] + DATA_3[3]*DATA_7[PAR_19-3] + DATA_3[4]*DATA_7[PAR_19-4]
+    DATA_5[PAR_19] = DATA_5[PAR_19] - DATA_3[6]*DATA_5[PAR_19-1] - DATA_3[7]*DATA_5[PAR_19-2] - DATA_3[8]*DATA_5[PAR_19-3] - DATA_3[9]*DATA_5[PAR_19-4]
+    
     totalcurrent1 = 0
     PAR_19 = PAR_19 + 1    'Par_19 is now timecounter
     avgcounter = 0
     
-    IF (PAR_19 = PAR_14) THEN    'Par_19 is now timecounter
+    
+    
+    IF (PAR_19 = PAR_14+4) THEN    'Par_19 is now timecounter, +4 since it starts at 4
       end
     ENDIF
     
