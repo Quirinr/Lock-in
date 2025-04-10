@@ -141,7 +141,7 @@ EVENT:
     
     FOR i = 1 TO filter_order
       DATA_6[PAR_19] = DATA_6[PAR_19] + DATA_3[i]*DATA_2[PAR_19 - i]  - DATA_3[5 + i]*DATA_6[PAR_19 - i]
-      DATA_5[PAR_19] = DATA_6[PAR_19] + DATA_3[i]*DATA_7[PAR_19 - i] - DATA_3[5 + i]*DATA_5[PAR_19 - i]
+      DATA_5[PAR_19] = DATA_5[PAR_19] + DATA_3[i]*DATA_7[PAR_19 - i] - DATA_3[5 + i]*DATA_5[PAR_19 - i]
     NEXT
     
     totalcurrent1 = 0

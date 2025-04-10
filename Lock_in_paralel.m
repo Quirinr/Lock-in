@@ -26,7 +26,15 @@ Timetrace.scanrate = 500000;       % Hz
 Timetrace.points_av = 100;        % points
 Timetrace.process_number = 2;
 Timetrace.model ='ADwin';
-Timetrace.process = 'Read_AI_fast_single';
+
+if MODE == 1
+    Settings.ADC_idx = 5; %the Data array number which should be print -1
+    Timetrace.process = 'Read_AI_fast_single_realtimefilt';
+
+elseif MODE == 0
+    Settings.ADC_idx = 1; %the Data array number which should be print -1
+    Timetrace.process = 'Read_AI_fast_single';
+end
 %% Initialize
 Settings = Init(Settings);
 %% Initialize ADwin
@@ -34,7 +42,7 @@ Settings = Init_ADwin(Settings, Waveform, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 75;      
+f_wanted = 12;      
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
 wave_vec_length = 1000;
@@ -90,8 +98,11 @@ Start_Process(6);
 if MODE == 1
 
     cutoff = 1;
-    [b, a] = butter(4, cutoff / (Timetrace.sampling_rate / 2), 'low');
+    order = 4;
+
+    [b, a] = butter(order,  cutoff / (Timetrace.sampling_rate / 2), 'low');
     Set_Par(28, round(wave_vec_length/4));
+    Set_Par(29, order);
     SetData_Double(3, [b, a], 0); %set filter parameters
     SetData_Double(4, [wave/Amplitude, wave/Amplitude], 0); %define normalized reference for mixing, double length to simplify cosine in ADBASIC
     SetData_Double(2, [0, 0, 0, 0], 0); %sets the first 4 entries of DATA_2 to 0 for filtering purposes
@@ -107,19 +118,24 @@ Start_Process(2);
 Timetrace.index = 1;
 %% get current and show plot
 Settings.N_ADC = 1;
-Settings.ADC_idx = 1;
+
 Timetrace = Realtime_timetrace(Settings, Timetrace, Settings.type);
 
-%% realtimefiltering plot
+%% realtime filtering ADWIN readout and plot
 if MODE == 1
     
     filtered_signal_inphase = GetData_Double(6, 4, Timetrace.sampling_rate * Timetrace.runtime);
     filtered_signal_quadrature = GetData_Double(5, 4, Timetrace.sampling_rate * Timetrace.runtime);
+    R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
+    Theta = atan(filtered_signal_quadrature ./filtered_signal_inphase);
+
     hold on
     figure
-    plot(filtered_signal_inphase, Color='w');
+    %plot(filtered_signal_quadrature, Color='r');
+    plot(R, Color='r');
     figure
-    plot(filtered_signal_quadrature, Color='r')
+    %plot(filtered_signal_quadrature, Color='r')
+    plot(Theta, Color='r');
     hold off
 
 end
@@ -173,6 +189,7 @@ if MODE ==  0
 
     hold on
     plot(mixed_signal_inphase)
+    plot(filtered_signal_inphase)
     plot(R)
     %plot(filtered_signal_quadrature_RMS)
     %plot(Theta(1:2*round(period_length)))
