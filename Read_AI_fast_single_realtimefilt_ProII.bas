@@ -69,11 +69,13 @@
 '#INCLUDE C:\Users\lab405\Desktop\Lakeshore-ADwin-GoldII\Matlab\ADwin_script\Additional_functions.Inc
 
 DIM DATA_2[2000000] as float 'measured and mixed data inphase
-DIM DATA_3[2000000] as float 'filter parameters
-DIM DATA_4[200000] as float 'plain reference frequency for mixing
+DIM DATA_7[2000000] as float 'measured and mixed data quadrature
 DIM DATA_5[2000000] as float 'quadrature filtered signal
 DIM DATA_6[2000000] as float 'inphase filtered signal
-DIM DATA_7[2000000] as float 'measured and mixed data quadrature
+DIM DATA_3[100] as float 'filter parameters
+DIM DATA_4[200000] as float 'plain reference frequency for mixing
+
+
 DIM DATA_11[8] as long
 DIM DATA_10[8] as long
 
@@ -88,6 +90,8 @@ DIM readout_constant as float
 DIM outmin_shift as long
 DIM filter_order as long
 DIM i as long 'for loop counter
+DIM averagemiddle as long
+DIM midtime as long
 
 INIT:
   avgcounter = 0
@@ -122,35 +126,34 @@ INIT:
 EVENT:
   'this is where the input will be read
   P2_Read_ADCF8_24B(PAR_5, DATA_10, 1) 'whats the 3. input for?
-  bin1 = DATA_10[2] 'index of input channel i suppose
+  totalcurrent1 = totalcurrent1 + DATA_10[2] 'took all calculations into averaging block
   P2_START_CONVF(Par_5, 0000000011111111b) 'there was 11b
-  totalcurrent1 = totalcurrent1 + bin1 'took all calculations into averaging block
-      
+ 
   avgcounter = avgcounter + 1
 
   ' get averaging
   IF(avgcounter = PAR_21) THEN
-    
-    FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
+
+    FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already 
     DATA_2[PAR_19]= FPAR_1 * DATA_4[PAR_25] 'mixing with plain sine + initial phase shift
     DATA_7[PAR_19]= FPAR_1 * DATA_4[PAR_25 + PAR_28] 'mixing with plain cos +initial phase shift
     
     'realtime filtering for inphase and quadrature
     DATA_6[PAR_19] = DATA_3[0]*DATA_2[PAR_19]
-    DATA_5[PAR_19] = DATA_3[0]*DATA_7[PAR_19]
+    DATA_5[PAR_19] = DATA_3[0]*DATA_7[PAR_19] 
     
-    FOR i = 1 TO filter_order
-      DATA_6[PAR_19] = DATA_6[PAR_19] + DATA_3[i]*DATA_2[PAR_19 - i]  - DATA_3[5 + i]*DATA_6[PAR_19 - i]
-      DATA_5[PAR_19] = DATA_5[PAR_19] + DATA_3[i]*DATA_7[PAR_19 - i] - DATA_3[5 + i]*DATA_5[PAR_19 - i]
-    NEXT
+    FOR i = 1 TO filter_order 
+      DATA_6[PAR_19] = DATA_6[PAR_19] + DATA_3[i]*DATA_2[PAR_19 - i]  - DATA_3[5 + i]*DATA_6[PAR_19 - i] 
+      DATA_5[PAR_19] = DATA_5[PAR_19] + DATA_3[i]*DATA_7[PAR_19 - i] - DATA_3[5 + i]*DATA_5[PAR_19 - i] 
+    NEXT 
     
-    totalcurrent1 = 0
+    totalcurrent1 = 0  
     PAR_19 = PAR_19 + 1    'Par_19 is now timecounter
     avgcounter = 0
     
     
     
-    IF (PAR_19 = PAR_14+4) THEN    'Par_19 is now timecounter, +4 since it starts at 4
+    IF (PAR_19 = PAR_14+4) THEN    'Par_19 is now timecounter, +4 since it starts at 4 
       end
     ENDIF
     

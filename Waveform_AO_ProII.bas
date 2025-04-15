@@ -71,6 +71,5 @@ EVENT:
   IF (PAR_25 = PAR_23) THEN
     PAR_25 = 0
   ENDIF
+  
 FINISH:
-  P2_Write_DAC(PAR_6, PAR_8, DATA_1[PAR_25])'Par_25 acts as voltagecounter
-  P2_Start_DAC(PAR_6)
