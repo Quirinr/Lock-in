@@ -31,10 +31,10 @@ Settings = Init_ADwin(Settings, Waveform, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 35; %realiable between 2Hz - 350Hz
+f_wanted = 23;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
-wave_vec_length = 1000;
+wave_vec_length = 2000;
 
 q = 1:wave_vec_length;
 wave = Amplitude * sqrt(2) * sin(q*2*pi/wave_vec_length + phi_shift*2*pi/360);
@@ -53,7 +53,7 @@ Set_Par(6, Settings.AO_address);
 
 %% set up timetrace
 
-% set parameters
+% set parameters 
 [Timetrace.process_delay, ~] = get_delays(Timetrace.scanrate, 0, Settings.clockfrequency);  % get_delays
 Timetrace.time_per_point = Timetrace.points_av / Timetrace.scanrate; % 1/sampling rate
 Timetrace.sampling_rate = 1 / Timetrace.time_per_point;
@@ -83,6 +83,7 @@ Start_Process(6);
 
 %% set realtime filering parameters
 
+harmonic = 1;
 cutoff = 1;
 order = 4;
 
@@ -91,7 +92,8 @@ order = 4;
 %subtracts the shift induced by averaging
 q = 1:3*wave_vec_length;
 q = q - round(Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)); % q - (fsett/fmeasure)/2
-internal_reference_wave =  sqrt(2) * sin(q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
+internal_reference_wave =  sqrt(2) * sin(harmonic*q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
+%shiftpar = Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)
 
 Set_Par(28, round(wave_vec_length/4));
 Set_Par(29, order);
@@ -118,11 +120,11 @@ label4 = uilabel(fig, 'Position', [20 60 260 20], 'Text', 'Theta: ');
 
 
 while isvalid(fig)
-
+    idx = Get_Par(19) -1;
     filtered_signal_inphase = GetData_Double(6, 0, 1);
     filtered_signal_quadrature = GetData_Double(5, 0, 1);
     R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
-    Theta = atan(filtered_signal_quadrature ./filtered_signal_inphase);
+    Theta = atan2(filtered_signal_quadrature , filtered_signal_inphase)*360/(2*pi);
 
 
 
@@ -130,7 +132,7 @@ while isvalid(fig)
     label1.Text = sprintf('filtered_signal_inphase: %.5f', filtered_signal_inphase);
     label2.Text = sprintf('filtered_signal_quadrature: %.5f', filtered_signal_quadrature);
     label3.Text = sprintf('R: %.5f', R);
-    label4.Text = sprintf('Theta: %.5f', Theta);
+    label4.Text = sprintf('Theta (degrees): %.5f', Theta);
 
     % Wait
     pause(0.1);

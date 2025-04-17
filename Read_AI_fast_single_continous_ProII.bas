@@ -68,11 +68,11 @@
 #INCLUDE ADwinPro_all.Inc
 '#INCLUDE C:\Users\lab405\Desktop\Lakeshore-ADwin-GoldII\Matlab\ADwin_script\Additional_functions.Inc
 
-DIM DATA_2[2000000] as float 'measured and mixed data inphase
-DIM DATA_7[2000000] as float 'measured and mixed data quadrature
-DIM DATA_5[2000000] as float 'quadrature filtered signal
-DIM DATA_6[2000000] as float 'inphase filtered signal
-DIM DATA_3[100] as float 'filter parameters
+DIM DATA_2[200] as float 'measured and mixed data inphase
+DIM DATA_7[200] as float 'measured and mixed data quadrature
+DIM DATA_5[200] as float 'quadrature filtered signal
+DIM DATA_6[200] as float 'inphase filtered signal
+DIM DATA_3[200] as float 'filter parameters
 DIM DATA_4[200000] as float 'plain reference frequency for mixing
 
 
@@ -92,6 +92,7 @@ DIM filter_order as long
 DIM i as long 'for loop counter
 DIM averagemiddle as long
 DIM reset_index as long
+DIM start_index as long
 
 INIT:
   avgcounter = 0
@@ -119,6 +120,7 @@ INIT:
   filter_order = PAR_29 
   PAR_19 = filter_order + 1 'par19 acts as filtering index
   reset_index = 2*filter_order + 1
+  start_index = filter_order + 1
   
   ' start first conversion
   P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this bin for
@@ -154,16 +156,17 @@ EVENT:
     
     DATA_6[PAR_19 - filter_order] = DATA_6[PAR_19]
     DATA_5[PAR_19 - filter_order] = DATA_5[PAR_19]
-    DATA_6[0] = DATA_6[PAR_19] '0 index used as output:: could also be achieved with combination of Par_19 and DATA_6 TODO
+    DATA_6[0] = DATA_6[PAR_19]
     DATA_5[0] = DATA_5[PAR_19]
     
     totalcurrent1 = 0  
     PAR_19 = PAR_19 + 1    'Par_19 is now timecounter
+    avgcounter = 0
     
     IF (PAR_19 = reset_index) THEN
-      PAR_19 = filter_order + 1
+      PAR_19 = start_index
     ENDIF
-    avgcounter = 0
+
     
   ENDIF
 FINISH:
