@@ -70,11 +70,16 @@
 
 DIM DATA_2[200] as float 'measured and mixed data inphase
 DIM DATA_7[200] as float 'measured and mixed data quadrature
-DIM DATA_5[200] as float 'quadrature filtered signal
 DIM DATA_6[200] as float 'inphase filtered signal
+DIM DATA_5[200] as float 'quadrature filtered signal
 DIM DATA_3[200] as float 'filter parameters
 DIM DATA_4[200000] as float 'plain reference frequency for mixing
 
+DIM DATA_9[200] as float 'measured and mixed data inphase harmonic
+DIM DATA_12[200] as float 'measured and mixed data quadrature harmonic
+DIM DATA_13[200] as float 'inphase filtered signal harmonic
+DIM DATA_14[200] as float 'quadrature filtered signal harmonic
+DIM DATA_8[200000] as float 'harmonic of plain reference frequency for mixing
 
 DIM DATA_11[8] as long
 DIM DATA_10[8] as long
@@ -93,6 +98,7 @@ DIM i as long 'for loop counter
 DIM averagemiddle as long
 DIM reset_index as long
 DIM start_index as long
+DIM shifted_timecounter as long
 
 INIT:
   avgcounter = 0
@@ -135,29 +141,53 @@ EVENT:
 
   ' get averaging
   IF(avgcounter = PAR_21) THEN
-
+    
+    shifted_timecounter = PAR_19 - filter_order
+    
     FPAR_1 = (totalcurrent1 * readout_constant) + outmin_shift 'averaging (/Par_21) happens in the constants already
     
     DATA_2[PAR_19]= FPAR_1 * DATA_4[PAR_25] 'mixing with plain sine + initial phase shift
-    DATA_2[PAR_19 - filter_order]= DATA_2[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    DATA_2[shifted_timecounter]= DATA_2[PAR_19] 'for continous filtering, whenever you reset PAR_19
     
     DATA_7[PAR_19]= FPAR_1 * DATA_4[PAR_25 + PAR_28] 'mixing with plain cos +initial phase shift
-    DATA_7[PAR_19 - filter_order]= DATA_7[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    DATA_7[shifted_timecounter]= DATA_7[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    
+    'the same with the harmonic
+    DATA_9[PAR_19]= FPAR_1 * DATA_8[PAR_25] 'mixing with plain sine + initial phase shift
+    DATA_9[shifted_timecounter]= DATA_9[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    
+    DATA_12[PAR_19]= FPAR_1 * DATA_8[PAR_25 + PAR_28] 'mixing with plain cos +initial phase shift
+    DATA_12[shifted_timecounter]= DATA_12[PAR_19] 'for continous filtering, whenever you reset PAR_19
     
     
     'realtime filtering for inphase and quadrature
     DATA_6[PAR_19] = DATA_3[0]*DATA_2[PAR_19]
-    DATA_5[PAR_19] = DATA_3[0]*DATA_7[PAR_19] 
+    DATA_5[PAR_19] = DATA_3[0]*DATA_7[PAR_19]
+    
+    'the same for harmonic
+    DATA_13[PAR_19] = DATA_3[0]*DATA_9[PAR_19]
+    DATA_14[PAR_19] = DATA_3[0]*DATA_12[PAR_19]
+    
     
     FOR i = 1 TO filter_order 
       DATA_6[PAR_19] = DATA_6[PAR_19] + DATA_3[i]*DATA_2[PAR_19 - i]  - DATA_3[5 + i]*DATA_6[PAR_19 - i]
-      DATA_5[PAR_19] = DATA_5[PAR_19] + DATA_3[i]*DATA_7[PAR_19 - i] - DATA_3[5 + i]*DATA_5[PAR_19 - i] 
+      DATA_5[PAR_19] = DATA_5[PAR_19] + DATA_3[i]*DATA_7[PAR_19 - i] - DATA_3[5 + i]*DATA_5[PAR_19 - i]
+      
+      'again the same for harmonic
+      DATA_13[PAR_19] = DATA_13[PAR_19] + DATA_3[i]*DATA_9[PAR_19 - i]  - DATA_3[5 + i]*DATA_13[PAR_19 - i]
+      DATA_14[PAR_19] = DATA_14[PAR_19] + DATA_3[i]*DATA_12[PAR_19 - i] - DATA_3[5 + i]*DATA_14[PAR_19 - i]
     NEXT 
     
-    DATA_6[PAR_19 - filter_order] = DATA_6[PAR_19]
-    DATA_5[PAR_19 - filter_order] = DATA_5[PAR_19]
+    DATA_6[shifted_timecounter] = DATA_6[PAR_19]
+    DATA_5[shifted_timecounter] = DATA_5[PAR_19]
     DATA_6[0] = DATA_6[PAR_19]
     DATA_5[0] = DATA_5[PAR_19]
+    
+    'the same for harmonic
+    DATA_13[shifted_timecounter] = DATA_13[PAR_19]
+    DATA_14[shifted_timecounter] = DATA_14[PAR_19]
+    DATA_13[0] = DATA_13[PAR_19]
+    DATA_14[0] = DATA_14[PAR_19]
     
     totalcurrent1 = 0  
     PAR_19 = PAR_19 + 1    'Par_19 is now timecounter
