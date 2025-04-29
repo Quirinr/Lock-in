@@ -101,6 +101,7 @@ Set_Par(29, order);
 SetData_Double(3, [b, a], 0); %set filter parameters
 SetData_Double(4, internal_reference_wave, 0); %defines normalized reference for mixing, multiple length to simplify cosine in ADBASIC
 SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic reference for mixing, multiple length to simplify cosine in ADBASIC
+
 SetData_Double(2, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_2 to 0 for filtering purposes
 SetData_Double(5, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_5 to 0 for filtering purposes
 SetData_Double(6, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_6 to 0 for filtering purposes
@@ -126,13 +127,18 @@ label2 = uilabel(fig, 'Position', [20 90 260 20], 'Text', 'filtered_signal_quadr
 label3 = uilabel(fig, 'Position', [20 60 260 20], 'Text', 'R: ');
 label4 = uilabel(fig, 'Position', [20 30 260 20], 'Text', 'Theta: ');
 
-label5 = uilabel(fig2, 'Position', [20 120 260 20], 'Text', sprintf('filtered_signal_inphase_%d_harmonic:', harmonic));
+labelText5 = sprintf('filtered_signal_quadrature_%d_harmonic:', harmonic);
+label5 = uilabel(fig2, 'Position', [20 120 260 20], 'Text', labelText5);
 
-label6 = uilabel(fig2, 'Position', [20 90 260 20], 'Text', sprintf('filtered_signal_quadrature_%d_harmonic:', harmonic));
+labelText6 = sprintf('filtered_signal_quadrature_%d_harmonic:', harmonic);
+label6 = uilabel(fig2, 'Position', [20 90 260 20], 'Text', labelText6);
 
-label7 = uilabel(fig2, 'Position', [20 60 260 20], 'Text', sprintf('R_%d_harmonic:', harmonic));
+labelText7 = sprintf('R_%d_harmonic:', harmonic);
+label7 = uilabel(fig2, 'Position', [20 60 260 20], 'Text', labelText7);
 
-label8 = uilabel(fig2, 'Position', [20 30 260 20], 'Text', sprintf('Theta_%d_harmonic:', harmonic));
+labelText8 = sprintf('Theta_%d_harmonic:', harmonic);
+label8 = uilabel(fig2, 'Position', [20 30 260 20], 'Text', labelText8);
+
 
 
 
@@ -155,10 +161,11 @@ while isvalid(fig)
     label3.Text = sprintf('R: %.5f', R);
     label4.Text = sprintf('Theta (degrees): %.5f', Theta);
 
-    label5.Text = sprintf('filtered_signal_inphase_harmonic: %.5f', filtered_signal_inphase_harm);
-    label6.Text = sprintf('filtered_signal_quadrature_harmonic: %.5f', filtered_signal_quadrature_harm);
-    label7.Text = sprintf('R_harmonic: %.5f', R_harm);
-    label8.Text = sprintf('Theta_harmonic (degrees): %.5f', Theta_harm);
+    label5.Text = sprintf('filtered_signal_inphase_%d_harmonic: %.5f', harmonic, filtered_signal_inphase_harm);
+    label6.Text = sprintf('filtered_signal_quadrature_%d_harmonic: %.5f', harmonic, filtered_signal_quadrature_harm);
+    label7.Text = sprintf('R_%d_harmonic: %.5f', harmonic, R_harm);
+    label8.Text = sprintf('Theta_%d_harmonic (degrees): %.5f', harmonic, Theta_harm);
+
 
     % Wait
     pause(0.1);
