@@ -15,11 +15,12 @@ Settings.ADwin = 'ProII'; % GoldII or ProII
 Settings.res4p = 0;     % 4 point measurement
 Settings.T = [10];   %;
 
-Waveform.output = 2;
+Waveform.output = 2:4; %addresses of all output channels
 Waveform.process = 'Waveform_AO';
 
-Timetrace.scanrate = 500000;       % Hz
-Timetrace.points_av = 100;        % points
+Timetrace.input = 2:4;
+Timetrace.scanrate = 50000;       % Hz
+Timetrace.points_av = 10;        % points
 Timetrace.process_number = 2;
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_single_continous';
@@ -31,7 +32,7 @@ Settings = Init_ADwin(Settings, Waveform, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 70;
+f_wanted = 23;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
 wave_vec_length = 2000;
@@ -45,9 +46,9 @@ actual_f_wanted = Settings.clockfrequency/(wave_vec_length * Processdelay6);
 fprintf("actual frequency = %f \n", actual_f_wanted)
 Set_Processdelay(6, Processdelay6);
 
-
 SetData_Double(1, wave_bin, 0);
-Set_Par(8, Waveform.output);
+SetData_Double(20, Waveform.output, 0);
+Set_Par(8, length(Waveform.output));
 Set_Par(23, numel(wave_bin));
 Set_Par(6, Settings.AO_address);
 
@@ -68,9 +69,11 @@ Set_Par(10, Settings.input_resolution);
 % set addresses
 Set_Par(5,Settings.AI_address);
 Set_Par(7,Settings.DIO_address);
+SetData_Double(21, Timetrace.input, 0);
 
 % set amplifier settings
-Set_FPar(27, 0);
+IV_gains = [0, 0, 0, 0, 0, 0, 0, 0]; %it will be calculated as 10^(-gain)
+SetData_Double(23, IV_gains, 0)
 
 % Inputs timetrace
 Set_Par(21, Timetrace.points_av);
@@ -91,7 +94,7 @@ order = 4;
 
 %subtracts the shift induced by averaging
 q = 1:3*wave_vec_length;
-q = q - round(Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)); % q - (fsett/fmeasure)/2
+q = q - round(Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)); % q - (fsett/fmeasure)/210
 internal_reference_wave =  sqrt(2) * sin(q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
 internal_reference_wave_harm =  sqrt(2) * sin(harmonic*q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing with harmonic
 %shiftpar = Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)
@@ -102,15 +105,6 @@ SetData_Double(3, [b, a], 0); %set filter parameters
 SetData_Double(4, internal_reference_wave, 0); %defines normalized reference for mixing, multiple length to simplify cosine in ADBASIC
 SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic reference for mixing, multiple length to simplify cosine in ADBASIC
 
-SetData_Double(2, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_2 to 0 for filtering purposes
-SetData_Double(5, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_5 to 0 for filtering purposes
-SetData_Double(6, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_6 to 0 for filtering purposes
-SetData_Double(7, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_7 to 0 for filtering purposes
-
-SetData_Double(9, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_2 to 0 for filtering purposes
-SetData_Double(14, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_5 to 0 for filtering purposes
-SetData_Double(13, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_6 to 0 for filtering purposes
-SetData_Double(12, zeros(2*order + 1), 0); %sets the first 4 entries of DATA_7 to 0 for filtering purposes
 
 %% run timetrace
 Start_Process(2);
@@ -127,10 +121,10 @@ label2 = uilabel(fig, 'Position', [20 90 260 20], 'Text', 'filtered_signal_quadr
 label3 = uilabel(fig, 'Position', [20 60 260 20], 'Text', 'R: ');
 label4 = uilabel(fig, 'Position', [20 30 260 20], 'Text', 'Theta: ');
 
-labelText5 = sprintf('filtered_signal_quadrature_%d_harmonic:', harmonic);
+labelText5 = sprintf('inphase_%d_harmonic:', harmonic);
 label5 = uilabel(fig2, 'Position', [20 120 260 20], 'Text', labelText5);
 
-labelText6 = sprintf('filtered_signal_quadrature_%d_harmonic:', harmonic);
+labelText6 = sprintf('quadrature_%d_harmonic:', harmonic);
 label6 = uilabel(fig2, 'Position', [20 90 260 20], 'Text', labelText6);
 
 labelText7 = sprintf('R_%d_harmonic:', harmonic);
@@ -140,9 +134,8 @@ labelText8 = sprintf('Theta_%d_harmonic:', harmonic);
 label8 = uilabel(fig2, 'Position', [20 30 260 20], 'Text', labelText8);
 
 
-
-
 while isvalid(fig)
+    %idx = Get_Par(19); %run tests to see if this is feasible
     filtered_signal_inphase = GetData_Double(6, 0, 1);
     filtered_signal_quadrature = GetData_Double(5, 0, 1);
     R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
@@ -154,15 +147,14 @@ while isvalid(fig)
     Theta_harm = atan2(filtered_signal_quadrature_harm , filtered_signal_inphase_harm)*360/(2*pi);
 
 
-
     % Update labels
-    label1.Text = sprintf('filtered_signal_inphase: %.5f', filtered_signal_inphase);
-    label2.Text = sprintf('filtered_signal_quadrature: %.5f', filtered_signal_quadrature);
+    label1.Text = sprintf('inphase: %.5f', filtered_signal_inphase);
+    label2.Text = sprintf('quadrature: %.5f', filtered_signal_quadrature);
     label3.Text = sprintf('R: %.5f', R);
     label4.Text = sprintf('Theta (degrees): %.5f', Theta);
 
-    label5.Text = sprintf('filtered_signal_inphase_%d_harmonic: %.5f', harmonic, filtered_signal_inphase_harm);
-    label6.Text = sprintf('filtered_signal_quadrature_%d_harmonic: %.5f', harmonic, filtered_signal_quadrature_harm);
+    label5.Text = sprintf('inphase_%d_harmonic: %.5f', harmonic, filtered_signal_inphase_harm);
+    label6.Text = sprintf('quadrature_%d_harmonic: %.5f', harmonic, filtered_signal_quadrature_harm);
     label7.Text = sprintf('R_%d_harmonic: %.5f', harmonic, R_harm);
     label8.Text = sprintf('Theta_%d_harmonic (degrees): %.5f', harmonic, Theta_harm);
 
