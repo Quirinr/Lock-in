@@ -53,6 +53,7 @@
 'PAR_27 = initial phase shift to reference signal
 'PAR_28 = quarter period length of reference (used for cosine)
 'PAR_29 = filter order
+'PAR_31 = quarter period length of harmonic reference (used for cosine)
 'measureflag = measurements flag
 
 'Outputs:
@@ -102,6 +103,7 @@ DIM j as long 'for loop counter
 DIM idx as long 'temporary index
 DIM reset_index as long
 DIM start_index as long
+DIM save_index as long
 DIM shifted_timecounter as long
 DIM timecounter as long
 
@@ -180,7 +182,7 @@ EVENT:
     
       'the same with the harmonic
       DATA_9[timecounter]= DATA_25[i] * DATA_8[PAR_25] 'mixing with plain sine + initial phase shift
-      DATA_12[timecounter]= DATA_25[i] * DATA_8[PAR_25 + PAR_28] 'mixing with plain cos +initial phase shift
+      DATA_12[timecounter]= DATA_25[i] * DATA_8[PAR_25 + PAR_31] 'mixing with plain cos +initial phase shift
     
     
       'realtime filtering for inphase and quadrature
@@ -207,18 +209,17 @@ EVENT:
       
       DATA_6[shifted_timecounter] = DATA_6[timecounter]
       DATA_5[shifted_timecounter] = DATA_5[timecounter]
-      
-      'Can be made more efficient
-      DATA_6[reset_index * i] = DATA_6[timecounter]
-      DATA_5[reset_index * i] = DATA_5[timecounter]
-    
       'the same for harmonic
       DATA_13[shifted_timecounter] = DATA_13[timecounter]
       DATA_14[shifted_timecounter] = DATA_14[timecounter]
       
-      'Can be made more efficient
-      DATA_13[reset_index * i] = DATA_13[timecounter]
-      DATA_14[reset_index * i] = DATA_14[timecounter]
+      
+      save_index = reset_index * i
+      DATA_6[save_index] = DATA_6[timecounter]
+      DATA_5[save_index] = DATA_5[timecounter]
+      'the same for harmonic
+      DATA_13[save_index] = DATA_13[timecounter]
+      DATA_14[save_index] = DATA_14[timecounter]
     NEXT
     
     PAR_19 = PAR_19 + 1    'Par_19 is underlying timecounter
