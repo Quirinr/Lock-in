@@ -21,7 +21,6 @@
 'PAR_5 = Address AIN F4/18
 'PAR_6 = Address AOUT 4/16
 'PAR_7 = Address DIO-32
-'PAR_8 = Number of output channels where voltage is set
 'PAR_10 = ADC resolution
 'PAR_20 = Number of ADC pairs
 
@@ -65,56 +64,51 @@
 'DATA_7 = averaged AI6 bin array 
 'DATA_8 = averaged AI7 bin array 
 'DATA_9 = averaged AI7 bin array
-'DATA_20 = output channel addresses where the voltage is set
-'DATA 21 = input channel addresses
+
 
 #INCLUDE ADwinPro_all.Inc
-'#INCLUDE C:\Users\lab405\Desktop\Lakeshore-ADwin-GoldII\Matlab\ADwin_script\Additional_functions.Inc
 
+'used for all channels
+DIM DATA_3[400] as float 'filter parameters
+DIM DATA_4[200000] as float 'plain reference frequency for mixing
+DIM DATA_8[200000] as float 'harmonic of plain reference frequency for mixing
+DIM DATA_11[8] as long 'ADC gains
+DIM DATA_15[8] as long 'IV gains
+DIM DATA_10[8] as long 'read Data catch of channels
+DIM DATA_16[16] as float 'readout constants and shifts
+DIM DATA_17[8] as float 'summed up inputs of channels
+
+'CHANNEL 1
 DIM DATA_2[400] as float 'measured and mixed data inphase
 DIM DATA_7[400] as float 'measured and mixed data quadrature
 DIM DATA_6[400] as float 'inphase filtered signal
 DIM DATA_5[400] as float 'quadrature filtered signal
-DIM DATA_3[400] as float 'filter parameters
-DIM DATA_4[200000] as float 'plain reference frequency for mixing
-
 DIM DATA_9[400] as float 'measured and mixed data inphase harmonic
 DIM DATA_12[400] as float 'measured and mixed data quadrature harmonic
 DIM DATA_13[400] as float 'inphase filtered signal harmonic
 DIM DATA_14[400] as float 'quadrature filtered signal harmonic
-DIM DATA_8[200000] as float 'harmonic of plain reference frequency for mixing
 
-DIM DATA_11[8] as long 'ADC gains (fuse with 23?)
-DIM DATA_23[8] as long 'IV gains (fuse with 11?)
-DIM DATA_10[8] as long 'read Data catch of channels
+'CHANNEL 2
 
-DIM DATA_21[8] as long 'input channel addresses
-DIM DATA_22[16] as float 'readout constants and shifts
-DIM DATA_25[8] as float 'summed up input of all channels
+
 
 DIM avgcounter as long
 DIM bin1 as long
 DIM output_min, output_max, bin_size as float
-DIM readout_constant as float
-DIM outmin_shift as long
-DIM filter_order as long
 DIM i as long 'for loop counter
-DIM j as long 'for loop counter
-DIM idx as long 'temporary index
-DIM reset_index as long
-DIM start_index as long
+
+DIM cosine_index as long
+DIM cosine_index_harm as long
+DIM idx1 as long
+DIM idx2 as long
+DIM idx3 as long
+DIM idx4 as long
 DIM save_index as long
-DIM shifted_timecounter as long
 DIM timecounter as long
 
 INIT:
   'initialize counters and vectors
-  PAR_8 = PAR_8 -1 'PAR_8 is the number of channels used. -1 because of 0 indexing
   avgcounter = 0
-  FOR i = 0 TO PAR_8
-    DATA_25[i] = 0
-  NEXT
-  
   
   'convert bin to V
   output_min = -10
@@ -122,22 +116,19 @@ INIT:
   bin_size = (output_max - output_min) / ((2^PAR_10))
   
   'calculations outside event block
-  FOR i = 0 TO PAR_8
-    idx = DATA_21[i]
-    'DATA_22 is the readout constant in the first 8 entries and the outmin shift in the last 8
-    DATA_22[i] = bin_size * (10^(-DATA_23[idx])) / ((2^DATA_11[idx]) * 64 * PAR_21) 'the power of 2 represents the ADC gain
-    DATA_22[8+i] = output_min * (10^(-DATA_23[idx])) / (2^(DATA_11[idx]))  'the power of 2 represents the ADC gain
+  FOR i = 0 TO 7
+    'DATA_16 is the readout constant in the first 8 entries and the outmin shift in the last 8
+    DATA_16[i] = bin_size * (10^(-DATA_15[i])) / ((2^DATA_11[i]) * 64 * PAR_21) 'the power of 2 represents the ADC gain
+    DATA_16[8+i] = output_min * (10^(-DATA_15[i])) / (2^(DATA_11[i]))  'the power of 2 represents the ADC gain
   NEXT
   
   
-  'sets filter order
-  filter_order = PAR_29 
-  start_index = filter_order + 1
-  PAR_19 = start_index 'par19 acts as filtering index
-  reset_index = 2*filter_order + 1
+  'ADJUST THIS TO FIXED FILTER ORDER
+  'sets filter order 
+  PAR_19 = 5 'par19 acts as filtering index
   
   'initializes arrays for filtering
-  FOR i = 0 TO 8*(2*filter_order +1)
+  FOR i = 0 TO 72
     DATA_2[i] = 0
     DATA_7[i] = 0
     DATA_9[i] = 0
@@ -146,89 +137,103 @@ INIT:
     DATA_5[i] = 0
     DATA_13[i] = 0
     DATA_14[i] = 0
+    
+    'ADD NEW ARRAYS
   NEXT
+  DATA_17[0] = 0
+  DATA_17[1] = 0
+  DATA_17[2] = 0
+  DATA_17[3] = 0
+  DATA_17[4] = 0
+  DATA_17[5] = 0
+  DATA_17[6] = 0
+  DATA_17[7] = 0
+  
+  idx1 = 4
+  idx2 = 3
+  idx3 = 2
+  idx4 = 1
   
   ' start first conversion
   P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this bin for
   P2_WAIT_EOC(11b)
+  
 EVENT:
   'this is where the input will be read
-  P2_Read_ADCF8_24B(PAR_5, DATA_10, 1) 'whats the 3. input for?
+  
+  'if does not work change back to 1!v
+  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0) 'whats the 3. input for? 
   P2_START_CONVF(Par_5, 0000000011111111b) 'there was 11b
   
   'here the input gets summed up for each channel
-  FOR i = 0 TO PAR_8
-    idx = DATA_21[i]
-    DATA_25[i] = DATA_25[i] + DATA_10[idx] 'recall, DATA_21 contains input adresses
-  NEXT
- 
+  DATA_17[0] = DATA_17[0] + DATA_10[0]
+  DATA_17[1] = DATA_17[1] + DATA_10[1]
+  DATA_17[2] = DATA_17[2] + DATA_10[2]
+  DATA_17[3] = DATA_17[3] + DATA_10[3]
+  DATA_17[4] = DATA_17[4] + DATA_10[4]
+  DATA_17[5] = DATA_17[5] + DATA_10[5]
+  DATA_17[6] = DATA_17[6] + DATA_10[6]
+  DATA_17[7] = DATA_17[7] + DATA_10[7]
+  
   avgcounter = avgcounter + 1
 
-  ' get averaging
+  'get averaging
   IF(avgcounter = PAR_21) THEN
     
-    'here the averaging and other operations happen
-    FOR i = 0 TO PAR_8 'could be more efficient if I save outmin shift in seperate array
-      DATA_25[i] = (DATA_25[i] * DATA_22[i]) + DATA_22[8+i] 'summed inputs * constant1 + constant2 (constants calculated in INIT)
+    'here the averaging and other operations happen: summed inputs * constant1 + constant2 (constants calculated in INIT)
+    DATA_17[0] = (DATA_17[0] * DATA_16[0]) + DATA_16[8]
+    DATA_17[1] = (DATA_17[1] * DATA_16[1]) + DATA_16[9]
+    DATA_17[2] = (DATA_17[2] * DATA_16[2]) + DATA_16[10]
+    DATA_17[3] = (DATA_17[3] * DATA_16[3]) + DATA_16[11]
+    DATA_17[4] = (DATA_17[4] * DATA_16[4]) + DATA_16[12]
+    DATA_17[5] = (DATA_17[5] * DATA_16[5]) + DATA_16[13]
+    DATA_17[6] = (DATA_17[6] * DATA_16[6]) + DATA_16[14]
+    DATA_17[7] = (DATA_17[7] * DATA_16[7]) + DATA_16[15] 
     
-      'the averaged data gets mixed and some initialization steps of the filtering happens, also for the harmonic
-      'the results are saved in a pseudo multidimensional array, where the first 2*filter_oder +1 entries represent the first channel and so on
-      'idea: could precalculate it outside and store it in an array to potentially save operations
-      timecounter = PAR_19 + reset_index * i 'reset index is 2* filter_order + 1 
-      shifted_timecounter = timecounter - filter_order
-      
-      DATA_2[timecounter]= DATA_25[i] * DATA_4[PAR_25] 'mixing with plain sine + initial phase shift
-      DATA_7[timecounter]= DATA_25[i] * DATA_4[PAR_25 + PAR_28] 'mixing with plain cos +initial phase shift
-    
-      'the same with the harmonic
-      DATA_9[timecounter]= DATA_25[i] * DATA_8[PAR_25] 'mixing with plain sine + initial phase shift
-      DATA_12[timecounter]= DATA_25[i] * DATA_8[PAR_25 + PAR_31] 'mixing with plain cos +initial phase shift
-    
-    
-      'realtime filtering for inphase and quadrature
-      DATA_6[timecounter] = DATA_3[0]*DATA_2[timecounter]
-      DATA_5[timecounter] = DATA_3[0]*DATA_7[timecounter]
-    
-      'the same for harmonic
-      DATA_13[timecounter] = DATA_3[0]*DATA_9[timecounter]
-      DATA_14[timecounter] = DATA_3[0]*DATA_12[timecounter]
-    
-      FOR j = 1 TO filter_order 
-        DATA_6[timecounter] = DATA_6[timecounter] + DATA_3[j]*DATA_2[timecounter - j] - DATA_3[start_index + j]*DATA_6[timecounter - j] 'start_index because = filter_oder+1
-        DATA_5[timecounter] = DATA_5[timecounter] + DATA_3[j]*DATA_7[timecounter - j] - DATA_3[start_index + j]*DATA_5[timecounter - j] 'start_index because = filter_oder+1
-      
-        'again the same for harmonic
-        DATA_13[timecounter] = DATA_13[timecounter] + DATA_3[j]*DATA_9[timecounter - j]  - DATA_3[start_index + j]*DATA_13[timecounter - j]'start_index because = filter_oder+1
-        DATA_14[timecounter] = DATA_14[timecounter] + DATA_3[j]*DATA_12[timecounter - j] - DATA_3[start_index + j]*DATA_14[timecounter - j]'start_index because = filter_oder+1
-      NEXT 
-      
-      DATA_2[shifted_timecounter]= DATA_2[timecounter] 'for continous filtering, whenever you reset PAR_19
-      DATA_7[shifted_timecounter]= DATA_7[timecounter] 'for continous filtering, whenever you reset PAR_19
-      DATA_9[shifted_timecounter]= DATA_9[timecounter] 'for continous filtering, whenever you reset PAR_19
-      DATA_12[shifted_timecounter]= DATA_12[timecounter] 'for continous filtering, whenever you reset PAR_19
-      
-      DATA_6[shifted_timecounter] = DATA_6[timecounter]
-      DATA_5[shifted_timecounter] = DATA_5[timecounter]
-      'the same for harmonic
-      DATA_13[shifted_timecounter] = DATA_13[timecounter]
-      DATA_14[shifted_timecounter] = DATA_14[timecounter]
-      
-      
-      save_index = reset_index * i
-      DATA_6[save_index] = DATA_6[timecounter]
-      DATA_5[save_index] = DATA_5[timecounter]
-      'the same for harmonic
-      DATA_13[save_index] = DATA_13[timecounter]
-      DATA_14[save_index] = DATA_14[timecounter]
-    NEXT
-    
-    PAR_19 = PAR_19 + 1    'Par_19 is underlying timecounter
-    avgcounter = 0
-    
-    IF (PAR_19 = reset_index) THEN
-      PAR_19 = start_index
-    ENDIF
+    'the averaged data gets mixed and some initialization steps of the filtering happens, also for the harmonic
 
+    cosine_index = PAR_25 + PAR_28
+    cosine_index_harm = PAR_25 + PAR_28
+      
+    'CHANNEL 1
+    DATA_2[PAR_19]= DATA_17[1] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_7[PAR_19]= DATA_17[1] * DATA_4[cosine_index] 'mixing with plain cos
+    DATA_9[PAR_19]= DATA_17[1] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_12[PAR_19]= DATA_17[1] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     
+    'realtime filtering
+    idx1 = PAR_19 -1
+    idx2 = PAR_19 -2
+    idx3 = PAR_19 -3
+    idx4 = PAR_19 -4
+    DATA_6[PAR_19] = DATA_3[0]*DATA_2[PAR_19] + DATA_3[1]*DATA_2[idx1] + DATA_3[2]*DATA_2[idx2] + DATA_3[3]*DATA_2[idx3] + DATA_3[4]*DATA_2[idx4] - DATA_3[6]*DATA_6[idx1] - DATA_3[7]*DATA_6[idx2] - DATA_3[8]*DATA_6[idx3] - DATA_3[9]*DATA_6[idx4]
+    DATA_5[PAR_19] = DATA_3[0]*DATA_7[PAR_19] + DATA_3[1]*DATA_7[idx1] + DATA_3[2]*DATA_7[idx2] + DATA_3[3]*DATA_7[idx3] + DATA_3[4]*DATA_7[idx4] - DATA_3[6]*DATA_5[idx1] - DATA_3[7]*DATA_5[idx2] - DATA_3[8]*DATA_5[idx3] - DATA_3[9]*DATA_5[idx4]
+    DATA_13[PAR_19] = DATA_3[0]*DATA_9[PAR_19] + DATA_3[1]*DATA_9[idx1] + DATA_3[2]*DATA_9[idx2] + DATA_3[3]*DATA_9[idx3] + DATA_3[4]*DATA_9[idx4] - DATA_3[6]*DATA_13[idx1] - DATA_3[7]*DATA_13[idx2] - DATA_3[8]*DATA_13[idx3] - DATA_3[9]*DATA_13[idx4]
+    DATA_14[PAR_19] = DATA_3[0]*DATA_12[PAR_19] + DATA_3[1]*DATA_12[idx1] + DATA_3[2]*DATA_12[idx2] + DATA_3[3]*DATA_12[idx3] + DATA_3[4]*DATA_12[idx4] - DATA_3[6]*DATA_14[idx1] - DATA_3[7]*DATA_14[idx2] - DATA_3[8]*DATA_14[idx3] - DATA_3[9]*DATA_14[idx4]
+
+     
+    DATA_2[idx4]= DATA_2[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    DATA_7[idx4]= DATA_7[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    DATA_9[idx4]= DATA_9[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    DATA_12[idx4]= DATA_12[PAR_19] 'for continous filtering, whenever you reset PAR_19
+    
+    DATA_6[idx4] = DATA_6[PAR_19]
+    DATA_5[idx4] = DATA_5[PAR_19]
+    DATA_13[idx4] = DATA_13[PAR_19]
+    DATA_14[idx4] = DATA_14[PAR_19]
+      
+    avgcounter = 0
+    DATA_17[0] = 0
+    DATA_17[1] = 0
+    DATA_17[2] = 0
+    DATA_17[3] = 0
+    DATA_17[4] = 0
+    DATA_17[5] = 0
+    DATA_17[6] = 0
+    DATA_17[7] = 0
+    
+    PAR_19 = (PAR_19+1) AND 3 'trick to prevent if: through the bitwise AND it serves as a modulo
+    PAR_19 = PAR_19 + 4
+
   ENDIF
 FINISH:
