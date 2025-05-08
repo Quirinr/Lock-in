@@ -15,10 +15,8 @@ Settings.ADwin = 'ProII'; % GoldII or ProII
 Settings.res4p = 0;     % 4 point measurement
 Settings.T = [10];   %;
 
-Waveform.output = 2:4; %addresses of all output channels
 Waveform.process = 'Waveform_AO';
 
-Timetrace.input = 2:4;
 Timetrace.scanrate = 50000;       % Hz
 Timetrace.points_av = 10;        % points
 Timetrace.process_number = 2;
@@ -32,7 +30,7 @@ Settings = Init_ADwin(Settings, Waveform, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 4;
+f_wanted = 34;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
 wave_vec_length = 2000;
@@ -47,8 +45,6 @@ fprintf("actual frequency = %f \n", actual_f_wanted)
 Set_Processdelay(6, Processdelay6);
 
 SetData_Double(1, wave_bin, 0);
-SetData_Double(20, Waveform.output, 0);
-Set_Par(8, length(Waveform.output));
 Set_Par(23, numel(wave_bin));
 Set_Par(6, Settings.AO_address);
 
@@ -69,24 +65,24 @@ Set_Par(10, Settings.input_resolution);
 % set addresses
 Set_Par(5,Settings.AI_address);
 Set_Par(7,Settings.DIO_address);
-SetData_Double(21, Timetrace.input, 0);
+
 
 % set amplifier settings
 IV_gains = [0, 0, 0, 0, 0, 0, 0, 0]; %it will be calculated as 10^(-gain)
-SetData_Double(23, IV_gains, 1);
+SetData_Double(15, IV_gains, 0);
 
 % Inputs timetrace
 Set_Par(21, Timetrace.points_av);
 
 %% set ADC gains
-SetData_Double(11, Settings.ADC_gain, 1);
+SetData_Double(11, Settings.ADC_gain, 0);
 
 %% run sine
 Start_Process(6);
 
 %% set realtime filering parameters
 
-harmonic = 2;   %IDEA: try demodulating harmonic with harmonic reference instead of normal one with DATA_2 abd 7 to localize the problem
+harmonic = 15;   %IDEA: try demodulating harmonic with harmonic reference instead of normal one with DATA_2 abd 7 to localize the problem
 cutoff = 1;
 order = 4;
 
@@ -102,7 +98,6 @@ internal_reference_wave_harm =  sqrt(2) * sin(harmonic*q*2*pi/wave_vec_length + 
 
 Set_Par(28, round(wave_vec_length/4));
 Set_Par(31, round(wave_vec_length/(4*harmonic)));
-Set_Par(29, order);
 SetData_Double(3, [b, a], 0); %set filter parameters
 SetData_Double(4, internal_reference_wave, 0); %defines normalized reference for mixing, multiple length to simplify cosine in ADBASIC
 SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic reference for mixing, multiple length to simplify cosine in ADBASIC
@@ -111,44 +106,36 @@ SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic
 Start_Process(2);
 
 %% ADWIN readout and plot
-nChannels = length(Timetrace.input);
-figs = gobjects(nChannels, 1); %a figure for each channel used
-labels = gobjects(nChannels, 4); %labels
 
-for i=1:nChannels
-    % Create UI figure
-    figs(i) = uifigure('Name', ['Channel:', num2str(Timetrace.input(i))], 'Position', [100*i, 100*i, 400, 200]);
+% Create UI figure
+fig = uifigure('Name', ['Channel:', ' x'], 'Position', [100, 100, 400, 200]);
 
-    % Create labels for the 4 parameters
-    labels(i, 1) = uilabel(figs(i), 'Position', [20 120 400 20], 'Text', 'filtered_signal_inphase: ');
-    labels(i, 2) = uilabel(figs(i), 'Position', [20 90 400 20], 'Text', 'filtered_signal_quadrature: ');
-    labels(i, 3) = uilabel(figs(i), 'Position', [20 60 400 20], 'Text', 'R: ');
-    labels(i, 4) = uilabel(figs(i), 'Position', [20 30 400 20], 'Text', 'Theta: ');
-end
+% Create labels for the 4 parameters
+label1 = uilabel(fig, 'Position', [20 120 400 20], 'Text', 'filtered_signal_inphase: ');
+label2 = uilabel(fig, 'Position', [20 90 400 20], 'Text', 'filtered_signal_quadrature: ');
+label3 = uilabel(fig, 'Position', [20 60 400 20], 'Text', 'R: ');
+label4 = uilabel(fig, 'Position', [20 30 400 20], 'Text', 'Theta: ');
 
 
+while isvalid(fig)
 
-while all(isvalid(figs(1:nChannels)))
-    for i=1:nChannels
-        channelIdx = (2*order + 1)*(i-1); %index of the right value in the ADWIN Array
+    idx = Get_Par(19);
+    filtered_signal_inphase = GetData_Double(68, idx, 1);
+    filtered_signal_quadrature = GetData_Double(69, idx, 1);
+    R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
+    Theta = atan2(filtered_signal_quadrature , filtered_signal_inphase)*360/(2*pi);
 
-        filtered_signal_inphase = GetData_Double(6, channelIdx, 1);
-        filtered_signal_quadrature = GetData_Double(5, channelIdx, 1);
-        R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
-        Theta = atan2(filtered_signal_quadrature , filtered_signal_inphase)*360/(2*pi);
-
-        filtered_signal_inphase_harm = GetData_Double(13, channelIdx, 1);
-        filtered_signal_quadrature_harm = GetData_Double(14, channelIdx, 1);
-        R_harm = sqrt(filtered_signal_inphase_harm.^2 + filtered_signal_quadrature_harm.^2);
-        Theta_harm = atan2(filtered_signal_quadrature_harm , filtered_signal_inphase_harm)*360/(2*pi);
+    filtered_signal_inphase_harm = GetData_Double(72, idx, 1);
+    filtered_signal_quadrature_harm = GetData_Double(73, idx, 1);
+    R_harm = sqrt(filtered_signal_inphase_harm.^2 + filtered_signal_quadrature_harm.^2);
+    Theta_harm = atan2(filtered_signal_quadrature_harm , filtered_signal_inphase_harm)*360/(2*pi);
 
 
-        % Update labels
-        labels(i, 1).Text = sprintf('inphase: %.5f                 %d. Harmonic: %.5f', filtered_signal_inphase, harmonic, filtered_signal_inphase_harm);
-        labels(i, 2).Text = sprintf('quadrature: %.5f              %d. Harmonic: %.5f', filtered_signal_quadrature, harmonic, filtered_signal_quadrature_harm);
-        labels(i, 3).Text = sprintf('R: %.5f                       %d. Harmonic: %.5f', R, harmonic, R_harm);
-        labels(i, 4).Text = sprintf('Theta (deg): %.5f             %d. Harmonic: %.5f', Theta, harmonic, Theta_harm);
-    end
+    % Update labels
+    label1.Text = sprintf('inphase: %.5f                 %d. Harmonic: %.5f', filtered_signal_inphase, harmonic, filtered_signal_inphase_harm);
+    label2.Text = sprintf('quadrature: %.5f              %d. Harmonic: %.5f', filtered_signal_quadrature, harmonic, filtered_signal_quadrature_harm);
+    label3.Text = sprintf('R: %.5f                       %d. Harmonic: %.5f', R, harmonic, R_harm);
+    label4.Text = sprintf('Theta (deg): %.5f             %d. Harmonic: %.5f', Theta, harmonic, Theta_harm);
 
     % Wait
     pause(0.1);
