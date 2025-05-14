@@ -17,8 +17,8 @@ Settings.T = [10];   %;
 
 Waveform.process = 'Waveform_AO';
 
-Timetrace.scanrate = 50000;       % Hz
-Timetrace.points_av = 10;        % points
+Timetrace.scanrate = 500000;       % Hz
+Timetrace.points_av = 100;        % points
 Timetrace.process_number = 2;
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_multi_continous';
@@ -30,13 +30,13 @@ Settings = Init_ADwin(Settings, Waveform, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 34;
+f_wanted = 12;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
 wave_vec_length = 2000;
 
 q = 1:wave_vec_length;
-wave = Amplitude * sqrt(2) * sin(q*2*pi/wave_vec_length + phi_shift*2*pi/360);
+wave = Amplitude * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360);
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
 Processdelay6 = round(Settings.clockfrequency/(wave_vec_length * f_wanted));
@@ -82,17 +82,17 @@ Start_Process(6);
 
 %% set realtime filering parameters
 
-harmonic = 15;   %IDEA: try demodulating harmonic with harmonic reference instead of normal one with DATA_2 abd 7 to localize the problem
+harmonic = 2;   %IDEA: try demodulating harmonic with harmonic reference instead of normal one with DATA_2 abd 7 to localize the problem
 cutoff = 1;
 order = 4;
 
 [b, a] = butter(order,  cutoff / (Timetrace.sampling_rate / 2), 'low');
 
-%subtracts the shift induced by averaging
-q = 0:4*wave_vec_length;
-q = q - round(Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)); % q - (fsett/fmeasure)/2
-internal_reference_wave =  sqrt(2) * sin(q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
-internal_reference_wave_harm =  sqrt(2) * sin(harmonic*q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing with harmonic
+%subtracts the shift introduced by uneven zero order hold error
+q = 1:4*wave_vec_length;
+q = q - Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate); % q - (fsett/fmeasure)/2
+internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
+internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing with harmonic
 %shiftpar = Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)
 
 
@@ -106,37 +106,74 @@ SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic
 Start_Process(2);
 
 %% ADWIN readout and plot
-
 % Create UI figure
-fig = uifigure('Name', ['Channel:', ' x'], 'Position', [100, 100, 400, 200]);
+fig = uifigure('Name', ['Channel:', ' x'], 'Position', [100, 100, 600, 700]);
 
-% Create labels for the 4 parameters
-label1 = uilabel(fig, 'Position', [20 120 400 20], 'Text', 'filtered_signal_inphase: ');
-label2 = uilabel(fig, 'Position', [20 90 400 20], 'Text', 'filtered_signal_quadrature: ');
-label3 = uilabel(fig, 'Position', [20 60 400 20], 'Text', 'R: ');
-label4 = uilabel(fig, 'Position', [20 30 400 20], 'Text', 'Theta: ');
+% Number of channels
+numChannels = 8;
 
+% Preallocate label arrays
+labels = gobjects(numChannels, 4); % 4 parameters: I, Q, R, Theta
+
+% Create labels
+for i = 1:numChannels
+    y_offset = 650 - (i-1)*80; % spacing between channel blocks
+    labels(i, 1) = uilabel(fig, 'Position', [20, y_offset, 560, 20], ...
+        'Text', sprintf('Ch %d Inphase: ', i));
+    labels(i, 2) = uilabel(fig, 'Position', [20, y_offset - 20, 560, 20], ...
+        'Text', sprintf('Ch %d Quadrature: ', i));
+    labels(i, 3) = uilabel(fig, 'Position', [20, y_offset - 40, 560, 20], ...
+        'Text', sprintf('Ch %d R: ', i));
+    labels(i, 4) = uilabel(fig, 'Position', [300, y_offset - 40, 560, 20], ...
+        'Text', sprintf('Ch %d Theta (deg): ', i));
+end
+
+% Set harmonic number for display (adjust as needed)
 
 while isvalid(fig)
-
     idx = Get_Par(19);
-    filtered_signal_inphase = GetData_Double(68, idx, 1);
-    filtered_signal_quadrature = GetData_Double(69, idx, 1);
-    R = sqrt(filtered_signal_inphase.^2 + filtered_signal_quadrature.^2);
-    Theta = atan2(filtered_signal_quadrature , filtered_signal_inphase)*360/(2*pi);
 
-    filtered_signal_inphase_harm = GetData_Double(72, idx, 1);
-    filtered_signal_quadrature_harm = GetData_Double(73, idx, 1);
-    R_harm = sqrt(filtered_signal_inphase_harm.^2 + filtered_signal_quadrature_harm.^2);
-    Theta_harm = atan2(filtered_signal_quadrature_harm , filtered_signal_inphase_harm)*360/(2*pi);
 
+    % Get main signals
+    I = GetData_Double(6, idx, 1);
+    Q = GetData_Double(5, idx, 1);
+    R = sqrt(I.^2 + Q.^2);
+    Theta = atan2(Q, I) * 180 / pi;
+
+    % Get harmonic signals
+    I_harm = GetData_Double(13, idx, 1);
+    Q_harm = GetData_Double(14, idx, 1);
+    R_harm = sqrt(I_harm.^2 + Q_harm.^2);
+    Theta_harm = atan2(Q_harm, I_harm) * 180 / pi;
 
     % Update labels
-    label1.Text = sprintf('inphase: %.5f                 %d. Harmonic: %.5f', filtered_signal_inphase, harmonic, filtered_signal_inphase_harm);
-    label2.Text = sprintf('quadrature: %.5f              %d. Harmonic: %.5f', filtered_signal_quadrature, harmonic, filtered_signal_quadrature_harm);
-    label3.Text = sprintf('R: %.5f                       %d. Harmonic: %.5f', R, harmonic, R_harm);
-    label4.Text = sprintf('Theta (deg): %.5f             %d. Harmonic: %.5f', Theta, harmonic, Theta_harm);
+    labels(1,1).Text = sprintf('Ch %d Inphase: %.5f    %d. Harm: %.5f', 1, I, harmonic, I_harm);
+    labels(1,2).Text = sprintf('Ch %d Quadrature: %.5f %d. Harm: %.5f', 1, Q, harmonic, Q_harm);
+    labels(1,3).Text = sprintf('R: %.5f                   %d. Harm: %.5f', R, harmonic, R_harm);
+    labels(1,4).Text = sprintf('Theta (deg): %.2f         %d. Harm: %.2f', Theta, harmonic, Theta_harm);
 
-    % Wait
+    for i = 2:numChannels
+        % Base channel index offset
+        base = (i - 2) * 8;
+
+        % Get main signals
+        I = GetData_Double(20 + base, idx, 1);
+        Q = GetData_Double(21 + base, idx, 1);
+        R = sqrt(I.^2 + Q.^2);
+        Theta = atan2(Q, I) * 180 / pi;
+
+        % Get harmonic signals
+        I_harm = GetData_Double(24 + base, idx, 1);
+        Q_harm = GetData_Double(25 + base, idx, 1);
+        R_harm = sqrt(I_harm.^2 + Q_harm.^2);
+        Theta_harm = atan2(Q_harm, I_harm) * 180 / pi;
+
+        % Update labels
+        labels(i,1).Text = sprintf('Ch %d Inphase: %.5f    %d. Harm: %.5f', i, I, harmonic, I_harm);
+        labels(i,2).Text = sprintf('Ch %d Quadrature: %.5f %d. Harm: %.5f', i, Q, harmonic, Q_harm);
+        labels(i,3).Text = sprintf('R: %.5f                   %d. Harm: %.5f', R, harmonic, R_harm);
+        labels(i,4).Text = sprintf('Theta (deg): %.2f         %d. Harm: %.2f', Theta, harmonic, Theta_harm);
+    end
+
     pause(0.1);
 end
