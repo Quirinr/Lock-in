@@ -58,11 +58,11 @@
 'Outputs:
 'DATA_2 = ...
 
-
 #INCLUDE ADwinPro_all.Inc
 
 'used for all channels
-DIM DATA_3[400] as float 'filter parameters
+DIM DATA_1[20000] as long  'voltage output array
+DIM DATA_3[20] as float 'filter parameters
 DIM DATA_4[200000] as float 'plain reference frequency for mixing
 DIM DATA_8[200000] as float 'harmonic of plain reference frequency for mixing
 DIM DATA_11[8] as long 'ADC gains
@@ -76,84 +76,87 @@ DIM DATA_76[5] as long 'lookup table for idx3 to save operation in EVENT
 DIM DATA_77[5] as long 'lookup table for idx4 to save operation in EVENT
 
 'CHANNEL 1
-DIM DATA_2[400] as float 'measured and mixed data inphase
-DIM DATA_7[400] as float 'measured and mixed data quadrature
-DIM DATA_6[400] as float 'inphase filtered signal
-DIM DATA_5[400] as float 'quadrature filtered signal
-DIM DATA_9[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_12[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_13[400] as float 'inphase filtered signal harmonic
-DIM DATA_14[400] as float 'quadrature filtered signal harmonic
+DIM DATA_2[100] as float 'measured and mixed data inphase
+DIM DATA_7[100] as float 'measured and mixed data quadrature
+DIM DATA_6[100] as float 'inphase filtered signal
+DIM DATA_5[100] as float 'quadrature filtered signal
+DIM DATA_9[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_12[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_13[100] as float 'inphase filtered signal harmonic
+DIM DATA_14[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 2
-DIM DATA_18[400] as float 'measured and mixed data inphase
-DIM DATA_19[400] as float 'measured and mixed data quadrature
-DIM DATA_20[400] as float 'inphase filtered signal
-DIM DATA_21[400] as float 'quadrature filtered signal
-DIM DATA_22[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_23[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_24[400] as float 'inphase filtered signal harmonic
-DIM DATA_25[400] as float 'quadrature filtered signal harmonic
+DIM DATA_18[100] as float 'measured and mixed data inphase
+DIM DATA_19[100] as float 'measured and mixed data quadrature
+DIM DATA_20[100] as float 'inphase filtered signal
+DIM DATA_21[100] as float 'quadrature filtered signal
+DIM DATA_22[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_23[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_24[100] as float 'inphase filtered signal harmonic
+DIM DATA_25[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 3
-DIM DATA_26[400] as float 'measured and mixed data inphase
-DIM DATA_27[400] as float 'measured and mixed data quadrature
-DIM DATA_28[400] as float 'inphase filtered signal
-DIM DATA_29[400] as float 'quadrature filtered signal
-DIM DATA_30[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_31[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_32[400] as float 'inphase filtered signal harmonic
-DIM DATA_33[400] as float 'quadrature filtered signal harmonic
+DIM DATA_26[100] as float 'measured and mixed data inphase
+DIM DATA_27[100] as float 'measured and mixed data quadrature
+DIM DATA_28[100] as float 'inphase filtered signal
+DIM DATA_29[100] as float 'quadrature filtered signal
+DIM DATA_30[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_31[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_32[100] as float 'inphase filtered signal harmonic
+DIM DATA_33[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 4
-DIM DATA_34[400] as float 'measured and mixed data inphase
-DIM DATA_35[400] as float 'measured and mixed data quadrature
-DIM DATA_36[400] as float 'inphase filtered signal
-DIM DATA_37[400] as float 'quadrature filtered signal
-DIM DATA_38[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_39[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_40[400] as float 'inphase filtered signal harmonic
-DIM DATA_41[400] as float 'quadrature filtered signal harmonic
+DIM DATA_34[100] as float 'measured and mixed data inphase
+DIM DATA_35[100] as float 'measured and mixed data quadrature
+DIM DATA_36[100] as float 'inphase filtered signal
+DIM DATA_37[100] as float 'quadrature filtered signal
+DIM DATA_38[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_39[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_40[100] as float 'inphase filtered signal harmonic
+DIM DATA_41[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 5
-DIM DATA_42[400] as float 'measured and mixed data inphase
-DIM DATA_43[400] as float 'measured and mixed data quadrature
-DIM DATA_44[400] as float 'inphase filtered signal
-DIM DATA_45[400] as float 'quadrature filtered signal
-DIM DATA_46[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_47[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_48[400] as float 'inphase filtered signal harmonic
-DIM DATA_49[400] as float 'quadrature filtered signal harmonic
+DIM DATA_42[100] as float 'measured and mixed data inphase
+DIM DATA_43[100] as float 'measured and mixed data quadrature
+DIM DATA_44[100] as float 'inphase filtered signal
+DIM DATA_45[100] as float 'quadrature filtered signal
+DIM DATA_46[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_47[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_48[100] as float 'inphase filtered signal harmonic
+DIM DATA_49[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 6
-DIM DATA_50[400] as float 'measured and mixed data inphase
-DIM DATA_51[400] as float 'measured and mixed data quadrature
-DIM DATA_52[400] as float 'inphase filtered signal
-DIM DATA_53[400] as float 'quadrature filtered signal
-DIM DATA_54[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_55[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_56[400] as float 'inphase filtered signal harmonic
-DIM DATA_57[400] as float 'quadrature filtered signal harmonic
+DIM DATA_50[100] as float 'measured and mixed data inphase
+DIM DATA_51[100] as float 'measured and mixed data quadrature
+DIM DATA_52[100] as float 'inphase filtered signal
+DIM DATA_53[100] as float 'quadrature filtered signal
+DIM DATA_54[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_55[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_56[100] as float 'inphase filtered signal harmonic
+DIM DATA_57[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 7
-DIM DATA_58[400] as float 'measured and mixed data inphase
-DIM DATA_59[400] as float 'measured and mixed data quadrature
-DIM DATA_60[400] as float 'inphase filtered signal
-DIM DATA_61[400] as float 'quadrature filtered signal
-DIM DATA_62[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_63[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_64[400] as float 'inphase filtered signal harmonic
-DIM DATA_65[400] as float 'quadrature filtered signal harmonic
+DIM DATA_58[100] as float 'measured and mixed data inphase
+DIM DATA_59[100] as float 'measured and mixed data quadrature
+DIM DATA_60[100] as float 'inphase filtered signal
+DIM DATA_61[100] as float 'quadrature filtered signal
+DIM DATA_62[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_63[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_64[100] as float 'inphase filtered signal harmonic
+DIM DATA_65[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 8
-DIM DATA_66[400] as float 'measured and mixed data inphase
-DIM DATA_67[400] as float 'measured and mixed data quadrature
-DIM DATA_68[400] as float 'inphase filtered signal
-DIM DATA_69[400] as float 'quadrature filtered signal
-DIM DATA_70[400] as float 'measured and mixed data inphase harmonic
-DIM DATA_71[400] as float 'measured and mixed data quadrature harmonic
-DIM DATA_72[400] as float 'inphase filtered signal harmonic
-DIM DATA_73[400] as float 'quadrature filtered signal harmonic
+DIM DATA_66[100] as float 'measured and mixed data inphase
+DIM DATA_67[100] as float 'measured and mixed data quadrature
+DIM DATA_68[100] as float 'inphase filtered signal
+DIM DATA_69[100] as float 'quadrature filtered signal
+DIM DATA_70[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_71[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_72[100] as float 'inphase filtered signal harmonic
+DIM DATA_73[100] as float 'quadrature filtered signal harmonic
+
+DIM actual_V as long
+DIM repeats as long
 
 DIM avgcounter as long
 DIM bin1 as long
@@ -186,7 +189,6 @@ INIT:
   NEXT
   
   
-  'ADJUST THIS TO FIXED FILTER ORDER
   'sets filter order 
   PAR_19 = 0 'par19 acts as filtering index
   
@@ -256,9 +258,8 @@ INIT:
     DATA_71[i] = 0
     DATA_72[i] = 0
     DATA_73[i] = 0
-    
-    'ADD NEW ARRAYS
   NEXT
+  
   DATA_17[0] = 0
   DATA_17[1] = 0
   DATA_17[2] = 0
@@ -288,20 +289,22 @@ INIT:
   DATA_77[2] = 3
   DATA_77[3] = 4
   DATA_77[4] = 0
-  idx1 = 4
-  idx2 = 3
-  idx3 = 2
-  idx4 = 1
   
-  ' start first conversion
-  P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this bin for
+  'start first conversion
+  P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this binary for
   P2_WAIT_EOC(11b)
   
-EVENT:
-  'this is where the input will be read
+  'for setting the DAC
+  PAR_25 = 0 'Par_25 acts as voltagecounter
+  repeats = 0 ' counter which counts repeats of each value in voltage array
+  actual_V = DATA_1[PAR_25] 'starts at 0 since then you do not have to do Par_23 + 1 and save an operation
+  'set DAC to first value
+  P2_Write_DAC(Par_6, PAR_8, actual_V)
+  P2_Start_DAC(PAR_6)
   
-  'if does not work change back to 1!v
-  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0) 'whats the 3. input for? 
+EVENT:
+  
+  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0) 'whats the 3. input for? if does not work change back to 1!v
   P2_START_CONVF(Par_5, 0000000011111111b) 'there was 11b
   
   'here the input gets summed up for each channel
@@ -315,6 +318,7 @@ EVENT:
   DATA_17[7] = DATA_17[7] + DATA_10[7]
   
   avgcounter = avgcounter + 1
+  
 
   'get averaging
   IF(avgcounter = PAR_21) THEN
@@ -329,15 +333,17 @@ EVENT:
     DATA_17[6] = (DATA_17[6] * DATA_16[6]) + DATA_16[14]
     DATA_17[7] = (DATA_17[7] * DATA_16[7]) + DATA_16[15] 
     
-    'the averaged data gets mixed and some initialization steps of the filtering happens, also for the harmonic
-
+    'indexes are being set
     cosine_index = PAR_25 + PAR_28
-    cosine_index_harm = PAR_25 + PAR_28
+    cosine_index_harm = PAR_25 + PAR_31
     idx1 = DATA_74[PAR_19]
     idx2 = DATA_75[PAR_19]
     idx3 = DATA_76[PAR_19]
     idx4 = DATA_77[PAR_19]
-      
+     
+    
+    'Filtering for all Channels:
+    
     'CHANNEL 1
     DATA_2[PAR_19]= DATA_17[0] * DATA_4[PAR_25] 'mixing with plain sine
     DATA_7[PAR_19]= DATA_17[0] * DATA_4[cosine_index] 'mixing with plain cos
@@ -417,7 +423,7 @@ EVENT:
     
     'CHANNEL 8
     DATA_66[PAR_19]= DATA_17[7] * DATA_4[PAR_25] 'mixing with plain sine
-    DATA_67[PAR_19]= DATA_17[7] * DATA_4 [cosine_index] 'mixing with plain cos
+    DATA_67[PAR_19]= DATA_17[7] * DATA_4[cosine_index] 'mixing with plain cos
     DATA_70[PAR_19]= DATA_17[7] * DATA_8[PAR_25] 'mixing with harmonic sine
     DATA_71[PAR_19]= DATA_17[7] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
@@ -443,5 +449,42 @@ EVENT:
       PAR_19 = 0
     ENDIF
 
+  ENDIF
+  
+  'Next voltage gets set
+  repeats = repeats + 1
+  
+  IF (repeats = PAR_30) THEN
+    'CHANNEL 1
+    P2_Write_DAC(Par_6, 1, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    'CHANNEL 2
+    P2_Write_DAC(Par_6, 2, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    'CHANNEL 3
+    P2_Write_DAC(Par_6, 3, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    'CHANNEL 4
+    P2_Write_DAC(Par_6, 4, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    'CHANNEL 5
+    P2_Write_DAC(Par_6, 5, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    'CHANNEL 6
+    P2_Write_DAC(Par_6, 6, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    'CHANNEL 7
+    P2_Write_DAC(Par_6, 7, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    'CHANNEL 8
+    P2_Write_DAC(Par_6, 8, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    
+    PAR_25 = Par_25 + 1
+    repeats = 0
+  ENDIF
+  
+  IF (PAR_25 = PAR_23) THEN
+    PAR_25 = 0
   ENDIF
 FINISH:

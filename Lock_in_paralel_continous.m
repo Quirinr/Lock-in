@@ -15,37 +15,47 @@ Settings.ADwin = 'ProII'; % GoldII or ProII
 Settings.res4p = 0;     % 4 point measurement
 Settings.T = [10];   %;
 
-Waveform.process = 'Waveform_AO';
-
-Timetrace.scanrate = 500000;       % Hz
-Timetrace.points_av = 100;        % points
-Timetrace.process_number = 2;
+% NOTE: Be careful when choosing averaging: when effective sampling rate
+% gets to high, filter might get unstable!
+Timetrace.scanrate = 300000;       % Hz
+Timetrace.points_av = 60;        % points
+Timetrace.process_number = 2;        
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_multi_continous';
 
 %% Initialize
 Settings = Init(Settings);
 %% Initialize ADwin
-Settings = Init_ADwin(Settings, Waveform, Timetrace);
+Settings = Init_ADwin(Settings, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 12;
+f_wanted = 92;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
-wave_vec_length = 2000;
 
+Timetrace.process_delay = Settings.clockfrequency/Timetrace.scanrate; %computes process delay
+Set_Processdelay(6, Timetrace.process_delay);
+
+wave_vec_length = Timetrace.scanrate/f_wanted;
+repeats = 1;
+
+while wave_vec_length > 10000
+    wave_vec_length = wave_vec_length/10;
+    repeats = repeats * 10;
+end
+
+wave_vec_length = round(wave_vec_length);
 q = 1:wave_vec_length;
-wave = Amplitude * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360);
+wave = Amplitude * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360) + Amplitude * sqrt(2) * cos(q*4*pi/wave_vec_length + phi_shift*2*pi/360);
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
-Processdelay6 = round(Settings.clockfrequency/(wave_vec_length * f_wanted));
-actual_f_wanted = Settings.clockfrequency/(wave_vec_length * Processdelay6);
-fprintf("actual frequency = %f \n", actual_f_wanted)
-Set_Processdelay(6, Processdelay6);
+actual_f = Settings.clockfrequency/(wave_vec_length * repeats * Timetrace.process_delay);
+fprintf("actual frequency = %f \n", actual_f)
 
 SetData_Double(1, wave_bin, 0);
 Set_Par(23, numel(wave_bin));
+Set_Par(30, repeats);
 Set_Par(6, Settings.AO_address);
 
 %% set up timetrace
@@ -76,10 +86,6 @@ Set_Par(21, Timetrace.points_av);
 
 %% set ADC gains
 SetData_Double(11, Settings.ADC_gain, 0);
-
-%% run sine
-Start_Process(6);
-
 %% set realtime filering parameters
 
 harmonic = 2;   %IDEA: try demodulating harmonic with harmonic reference instead of normal one with DATA_2 abd 7 to localize the problem
@@ -90,7 +96,7 @@ order = 4;
 
 %subtracts the shift introduced by uneven zero order hold error
 q = 1:4*wave_vec_length;
-q = q - Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate); % q - (fsett/fmeasure)/2
+q = q - Settings.clockfrequency/(Timetrace.process_delay *2* repeats * Timetrace.sampling_rate) -0.5; % q - ((fsett/fmeasure) -1)/2 (zero order hold error)
 internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
 internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing with harmonic
 %shiftpar = Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)
