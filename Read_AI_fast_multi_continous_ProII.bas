@@ -7,7 +7,7 @@
 ' Version                        = 1
 ' ADbasic_Version                = 6.4.0
 ' Optimize                       = Yes
-' Optimize_Level                 = 1
+' Optimize_Level                 = 4
 ' Stacksize                      = 1000
 ' Info_Last_Save                 = Q  Q\quiri
 '<Header End>
@@ -171,6 +171,7 @@ DIM idx3 as long
 DIM idx4 as long
 DIM save_index as long
 DIM timecounter as long
+DIM sine_index as long
 
 INIT:
   'initialize counters and vectors
@@ -291,21 +292,52 @@ INIT:
   DATA_77[4] = 0
   
   'start first conversion
-  P2_START_CONVF(Par_5, 0000000011111111b)'<---- whats this binary for
-  P2_WAIT_EOC(11b)
+  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0)
+  P2_START_CONVF(Par_5, 0000000011111111b)
   
   'for setting the DAC
-  PAR_25 = 0 'Par_25 acts as voltagecounter
   repeats = 0 ' counter which counts repeats of each value in voltage array
-  actual_V = DATA_1[PAR_25] 'starts at 0 since then you do not have to do Par_23 + 1 and save an operation
+  actual_V = DATA_1[0] 'starts at 0 since then you do not have to do Par_23 + 1 and save an operation
+  PAR_25 = 0 'Par_25 acts as voltagecounter
+  
   'set DAC to first value
-  P2_Write_DAC(Par_6, PAR_8, actual_V)
+  P2_Write_DAC(Par_6, 1, actual_V)
+  P2_Write_DAC(Par_6, 2, actual_V)
+  P2_Write_DAC(Par_6, 3, actual_V)
+  P2_Write_DAC(Par_6, 4, actual_V)
+  P2_Write_DAC(Par_6, 5, actual_V)
+  P2_Write_DAC(Par_6, 6, actual_V)
+  P2_Write_DAC(Par_6, 7, actual_V)
+  P2_Write_DAC(Par_6, 8, actual_V)
   P2_Start_DAC(PAR_6)
+  
+  P2_WAIT_EOC(11b)
   
 EVENT:
   
-  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0) 'whats the 3. input for? if does not work change back to 1!v
+  'how does it work? does it wait?? until conversion or does it run parallel to code?
+  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0) 'whats the 3. input for?
   P2_START_CONVF(Par_5, 0000000011111111b) 'there was 11b
+  
+  'if repeated enough, new voltage will be set
+  IF (repeats = PAR_30) THEN
+    P2_Write_DAC(Par_6, 1, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, 2, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, 3, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, 4, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, 5, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, 6, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, 7, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Write_DAC(Par_6, 8, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
+    P2_Start_DAC(PAR_6)
+    
+    PAR_25 = Par_25 + 1
+    repeats = 0
+    
+    IF (PAR_25 = PAR_23) THEN
+      PAR_25 = 0
+    ENDIF
+  ENDIF
   
   'here the input gets summed up for each channel
   DATA_17[0] = DATA_17[0] + DATA_10[0]
@@ -319,7 +351,7 @@ EVENT:
   
   avgcounter = avgcounter + 1
   
-
+  
   'get averaging
   IF(avgcounter = PAR_21) THEN
     
@@ -334,8 +366,9 @@ EVENT:
     DATA_17[7] = (DATA_17[7] * DATA_16[7]) + DATA_16[15] 
     
     'indexes are being set
-    cosine_index = PAR_25 + PAR_28
-    cosine_index_harm = PAR_25 + PAR_31
+    sine_index = PAR_25 -1
+    cosine_index = PAR_25 + PAR_28 -1 
+    cosine_index_harm = PAR_25 + PAR_31 -1
     idx1 = DATA_74[PAR_19]
     idx2 = DATA_75[PAR_19]
     idx3 = DATA_76[PAR_19]
@@ -345,9 +378,9 @@ EVENT:
     'Filtering for all Channels:
     
     'CHANNEL 1
-    DATA_2[PAR_19]= DATA_17[0] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_2[PAR_19]= DATA_17[0] * DATA_4[sine_index] 'mixing with plain sine
     DATA_7[PAR_19]= DATA_17[0] * DATA_4[cosine_index] 'mixing with plain cos
-    DATA_9[PAR_19]= DATA_17[0] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_9[PAR_19]= DATA_17[0] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_12[PAR_19]= DATA_17[0] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_6[PAR_19] = DATA_3[0]*DATA_2[PAR_19] + DATA_3[1]*DATA_2[idx1] + DATA_3[2]*DATA_2[idx2] + DATA_3[3]*DATA_2[idx3] + DATA_3[4]*DATA_2[idx4] - DATA_3[6]*DATA_6[idx1] - DATA_3[7]*DATA_6[idx2] - DATA_3[8]*DATA_6[idx3] - DATA_3[9]*DATA_6[idx4]
@@ -356,9 +389,9 @@ EVENT:
     DATA_14[PAR_19] = DATA_3[0]*DATA_12[PAR_19] + DATA_3[1]*DATA_12[idx1] + DATA_3[2]*DATA_12[idx2] + DATA_3[3]*DATA_12[idx3] + DATA_3[4]*DATA_12[idx4] - DATA_3[6]*DATA_14[idx1] - DATA_3[7]*DATA_14[idx2] - DATA_3[8]*DATA_14[idx3] - DATA_3[9]*DATA_14[idx4]
     
     'CHANNEL 2
-    DATA_18[PAR_19]= DATA_17[1] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_18[PAR_19]= DATA_17[1] * DATA_4[sine_index] 'mixing with plain sine
     DATA_19[PAR_19]= DATA_17[1] * DATA_4[cosine_index] 'mixing with plain cos
-    DATA_22[PAR_19]= DATA_17[1] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_22[PAR_19]= DATA_17[1] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_23[PAR_19]= DATA_17[1] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_20[PAR_19] = DATA_3[0]*DATA_18[PAR_19] + DATA_3[1]*DATA_18[idx1] + DATA_3[2]*DATA_18[idx2] + DATA_3[3]*DATA_18[idx3] + DATA_3[4]*DATA_18[idx4] - DATA_3[6]*DATA_20[idx1] - DATA_3[7]*DATA_20[idx2] - DATA_3[8]*DATA_20[idx3] - DATA_3[9]*DATA_20[idx4]
@@ -367,9 +400,9 @@ EVENT:
     DATA_25[PAR_19] = DATA_3[0]*DATA_23[PAR_19] + DATA_3[1]*DATA_23[idx1] + DATA_3[2]*DATA_23[idx2] + DATA_3[3]*DATA_23[idx3] + DATA_3[4]*DATA_23[idx4] - DATA_3[6]*DATA_25[idx1] - DATA_3[7]*DATA_25[idx2] - DATA_3[8]*DATA_25[idx3] - DATA_3[9]*DATA_25[idx4]
     
     'CHANNEL 3
-    DATA_26[PAR_19]= DATA_17[2] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_26[PAR_19]= DATA_17[2] * DATA_4[sine_index] 'mixing with plain sine
     DATA_27[PAR_19]= DATA_17[2] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_30[PAR_19]= DATA_17[2] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_30[PAR_19]= DATA_17[2] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_31[PAR_19]= DATA_17[2] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_28[PAR_19] = DATA_3[0]*DATA_26[PAR_19] + DATA_3[1]*DATA_26[idx1] + DATA_3[2]*DATA_26[idx2] + DATA_3[3]*DATA_26[idx3] + DATA_3[4]*DATA_26[idx4] - DATA_3[6]*DATA_28[idx1] - DATA_3[7]*DATA_28[idx2] - DATA_3[8]*DATA_28[idx3] - DATA_3[9]*DATA_28[idx4]
@@ -378,9 +411,9 @@ EVENT:
     DATA_33[PAR_19] = DATA_3[0]*DATA_31[PAR_19] + DATA_3[1]*DATA_31[idx1] + DATA_3[2]*DATA_31[idx2] + DATA_3[3]*DATA_31[idx3] + DATA_3[4]*DATA_31[idx4] - DATA_3[6]*DATA_33[idx1] - DATA_3[7]*DATA_33[idx2] - DATA_3[8]*DATA_33[idx3] - DATA_3[9]*DATA_33[idx4]
     
     'CHANNEL 4
-    DATA_34[PAR_19]= DATA_17[3] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_34[PAR_19]= DATA_17[3] * DATA_4[sine_index] 'mixing with plain sine
     DATA_35[PAR_19]= DATA_17[3] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_38[PAR_19]= DATA_17[3] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_38[PAR_19]= DATA_17[3] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_39[PAR_19]= DATA_17[3] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_36[PAR_19] = DATA_3[0]*DATA_34[PAR_19] + DATA_3[1]*DATA_34[idx1] + DATA_3[2]*DATA_34[idx2] + DATA_3[3]*DATA_34[idx3] + DATA_3[4]*DATA_34[idx4] - DATA_3[6]*DATA_36[idx1] - DATA_3[7]*DATA_36[idx2] - DATA_3[8]*DATA_36[idx3] - DATA_3[9]*DATA_36[idx4]
@@ -389,9 +422,9 @@ EVENT:
     DATA_41[PAR_19] = DATA_3[0]*DATA_39[PAR_19] + DATA_3[1]*DATA_39[idx1] + DATA_3[2]*DATA_39[idx2] + DATA_3[3]*DATA_39[idx3] + DATA_3[4]*DATA_39[idx4] - DATA_3[6]*DATA_41[idx1] - DATA_3[7]*DATA_41[idx2] - DATA_3[8]*DATA_41[idx3] - DATA_3[9]*DATA_41[idx4]
     
     'CHANNEL 5
-    DATA_42[PAR_19]= DATA_17[4] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_42[PAR_19]= DATA_17[4] * DATA_4[sine_index] 'mixing with plain sine
     DATA_43[PAR_19]= DATA_17[4] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_46[PAR_19]= DATA_17[4] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_46[PAR_19]= DATA_17[4] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_47[PAR_19]= DATA_17[4] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_44[PAR_19] = DATA_3[0]*DATA_42[PAR_19] + DATA_3[1]*DATA_42[idx1] + DATA_3[2]*DATA_42[idx2] + DATA_3[3]*DATA_42[idx3] + DATA_3[4]*DATA_42[idx4] - DATA_3[6]*DATA_44[idx1] - DATA_3[7]*DATA_44[idx2] - DATA_3[8]*DATA_44[idx3] - DATA_3[9]*DATA_44[idx4]
@@ -400,9 +433,9 @@ EVENT:
     DATA_49[PAR_19] = DATA_3[0]*DATA_47[PAR_19] + DATA_3[1]*DATA_47[idx1] + DATA_3[2]*DATA_47[idx2] + DATA_3[3]*DATA_47[idx3] + DATA_3[4]*DATA_47[idx4] - DATA_3[6]*DATA_49[idx1] - DATA_3[7]*DATA_49[idx2] - DATA_3[8]*DATA_49[idx3] - DATA_3[9]*DATA_49[idx4]
     
     'CHANNEL 6
-    DATA_50[PAR_19]= DATA_17[5] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_50[PAR_19]= DATA_17[5] * DATA_4[sine_index] 'mixing with plain sine
     DATA_51[PAR_19]= DATA_17[5] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_54[PAR_19]= DATA_17[5] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_54[PAR_19]= DATA_17[5] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_55[PAR_19]= DATA_17[5] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_52[PAR_19] = DATA_3[0]*DATA_50[PAR_19] + DATA_3[1]*DATA_50[idx1] + DATA_3[2]*DATA_50[idx2] + DATA_3[3]*DATA_50[idx3] + DATA_3[4]*DATA_50[idx4] - DATA_3[6]*DATA_52[idx1] - DATA_3[7]*DATA_52[idx2] - DATA_3[8]*DATA_52[idx3] - DATA_3[9]*DATA_52[idx4]
@@ -411,9 +444,9 @@ EVENT:
     DATA_57[PAR_19] = DATA_3[0]*DATA_55[PAR_19] + DATA_3[1]*DATA_55[idx1] + DATA_3[2]*DATA_55[idx2] + DATA_3[3]*DATA_55[idx3] + DATA_3[4]*DATA_55[idx4] - DATA_3[6]*DATA_57[idx1] - DATA_3[7]*DATA_57[idx2] - DATA_3[8]*DATA_57[idx3] - DATA_3[9]*DATA_57[idx4]
     
     'CHANNEL 7
-    DATA_58[PAR_19]= DATA_17[6] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_58[PAR_19]= DATA_17[6] * DATA_4[sine_index] 'mixing with plain sine
     DATA_59[PAR_19]= DATA_17[6] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_62[PAR_19]= DATA_17[6] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_62[PAR_19]= DATA_17[6] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_63[PAR_19]= DATA_17[6] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_60[PAR_19] = DATA_3[0]*DATA_58[PAR_19] + DATA_3[1]*DATA_58[idx1] + DATA_3[2]*DATA_58[idx2] + DATA_3[3]*DATA_58[idx3] + DATA_3[4]*DATA_58[idx4] - DATA_3[6]*DATA_60[idx1] - DATA_3[7]*DATA_60[idx2] - DATA_3[8]*DATA_60[idx3] - DATA_3[9]*DATA_60[idx4]
@@ -422,9 +455,9 @@ EVENT:
     DATA_65[PAR_19] = DATA_3[0]*DATA_63[PAR_19] + DATA_3[1]*DATA_63[idx1] + DATA_3[2]*DATA_63[idx2] + DATA_3[3]*DATA_63[idx3] + DATA_3[4]*DATA_63[idx4] - DATA_3[6]*DATA_65[idx1] - DATA_3[7]*DATA_65[idx2] - DATA_3[8]*DATA_65[idx3] - DATA_3[9]*DATA_65[idx4]
     
     'CHANNEL 8
-    DATA_66[PAR_19]= DATA_17[7] * DATA_4[PAR_25] 'mixing with plain sine
+    DATA_66[PAR_19]= DATA_17[7] * DATA_4[sine_index] 'mixing with plain sine
     DATA_67[PAR_19]= DATA_17[7] * DATA_4[cosine_index] 'mixing with plain cos
-    DATA_70[PAR_19]= DATA_17[7] * DATA_8[PAR_25] 'mixing with harmonic sine
+    DATA_70[PAR_19]= DATA_17[7] * DATA_8[sine_index] 'mixing with harmonic sine
     DATA_71[PAR_19]= DATA_17[7] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
     DATA_68[PAR_19] = DATA_3[0]*DATA_66[PAR_19] + DATA_3[1]*DATA_66[idx1] + DATA_3[2]*DATA_66[idx2] + DATA_3[3]*DATA_66[idx3] + DATA_3[4]*DATA_66[idx4] - DATA_3[6]*DATA_68[idx1] - DATA_3[7]*DATA_68[idx2] - DATA_3[8]*DATA_68[idx3] - DATA_3[9]*DATA_68[idx4]
@@ -448,43 +481,7 @@ EVENT:
     IF (PAR_19 = 5) THEN
       PAR_19 = 0
     ENDIF
-
   ENDIF
   
-  'Next voltage gets set
   repeats = repeats + 1
-  
-  IF (repeats = PAR_30) THEN
-    'CHANNEL 1
-    P2_Write_DAC(Par_6, 1, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    'CHANNEL 2
-    P2_Write_DAC(Par_6, 2, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    'CHANNEL 3
-    P2_Write_DAC(Par_6, 3, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    'CHANNEL 4
-    P2_Write_DAC(Par_6, 4, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    'CHANNEL 5
-    P2_Write_DAC(Par_6, 5, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    'CHANNEL 6
-    P2_Write_DAC(Par_6, 6, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    'CHANNEL 7
-    P2_Write_DAC(Par_6, 7, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    'CHANNEL 8
-    P2_Write_DAC(Par_6, 8, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
-    P2_Start_DAC(PAR_6)
-    
-    PAR_25 = Par_25 + 1
-    repeats = 0
-  ENDIF
-  
-  IF (PAR_25 = PAR_23) THEN
-    PAR_25 = 0
-  ENDIF
 FINISH:

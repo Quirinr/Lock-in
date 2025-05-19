@@ -23,6 +23,7 @@ Timetrace.process_number = 2;
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_multi_continous';
 
+
 %% Initialize
 Settings = Init(Settings);
 %% Initialize ADwin
@@ -30,12 +31,11 @@ Settings = Init_ADwin(Settings, Timetrace);
 
 %% set up sinewave
 
-f_wanted = 92;
+f_wanted = 10;
 phi_shift = 0; %phase shift in degrees
 Amplitude = 1;
 
 Timetrace.process_delay = Settings.clockfrequency/Timetrace.scanrate; %computes process delay
-Set_Processdelay(6, Timetrace.process_delay);
 
 wave_vec_length = Timetrace.scanrate/f_wanted;
 repeats = 1;
@@ -50,9 +50,10 @@ q = 1:wave_vec_length;
 wave = Amplitude * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360) + Amplitude * sqrt(2) * cos(q*4*pi/wave_vec_length + phi_shift*2*pi/360);
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
-actual_f = Settings.clockfrequency/(wave_vec_length * repeats * Timetrace.process_delay);
+actual_f = Timetrace.scanrate/(wave_vec_length * repeats);
 fprintf("actual frequency = %f \n", actual_f)
 
+Set_Processdelay(6, Timetrace.process_delay)
 SetData_Double(1, wave_bin, 0);
 Set_Par(23, numel(wave_bin));
 Set_Par(30, repeats);
@@ -94,13 +95,11 @@ order = 4;
 
 [b, a] = butter(order,  cutoff / (Timetrace.sampling_rate / 2), 'low');
 
-%subtracts the shift introduced by uneven zero order hold error
+%subtracts the shift introduced by uneven setting/reading
 q = 1:4*wave_vec_length;
-q = q - Settings.clockfrequency/(Timetrace.process_delay *2* repeats * Timetrace.sampling_rate) -0.5; % q - ((fsett/fmeasure) -1)/2 (zero order hold error)
-internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
-internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing with harmonic
-%shiftpar = Settings.clockfrequency/(Processdelay6 * Timetrace.sampling_rate * 2)
-
+q = q -Timetrace.points_av/(2*repeats) + 0.5; % q - (fsett/fmeasure)/2 (shift error correction)
+internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length); %used in mixing
+internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length); %used in mixing with harmonic
 
 Set_Par(28, round(wave_vec_length/4));
 Set_Par(31, round(wave_vec_length/(4*harmonic)));

@@ -17,7 +17,7 @@ Settings.T = [10];   %;
 
 % NOTE: Be careful when choosing averaging: when effective sampling rate
 % gets to high, filter might get unstable!
-Timetrace.runtime = 2 ;      % s
+Timetrace.runtime = 10 ;      % s
 Timetrace.scanrate = 100000;       % Hz
 Timetrace.points_av = 20;        % points
 Timetrace.process_number = 2;        
@@ -33,7 +33,7 @@ Settings = Init_ADwin(Settings, Timetrace);
 %% set up sinewave
 f_wanted = 12;
 phi_shift = 0; %phase shift in degrees
-Amplitude = 1;
+RMS = 1;
 
 Timetrace.process_delay = Settings.clockfrequency/Timetrace.scanrate; %computes process delay
 Set_Processdelay(6, Timetrace.process_delay);
@@ -48,7 +48,7 @@ end
 
 wave_vec_length = round(wave_vec_length);
 q = 1:wave_vec_length;
-wave = Amplitude * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360) + Amplitude * sqrt(2) * cos(q*4*pi/wave_vec_length + phi_shift*2*pi/360);
+wave = RMS * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360) + RMS * sqrt(2) * cos(q*4*pi/wave_vec_length + phi_shift*2*pi/360);
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
 actual_f = Settings.clockfrequency/(wave_vec_length * repeats * Timetrace.process_delay);
@@ -108,12 +108,11 @@ settled_count = settlingtime * Timetrace.sampling_rate;
 Timetrace.runtime = Timetrace.runtime + settlingtime;
 Set_Par(14, Timetrace.runtime_counts + settled_count);
 
-%subtracts the shift introduced by zero order hold error
+%subtracts the shift introduced by uneven setting/reading
 q = 1:4*wave_vec_length;
-q = q - Settings.clockfrequency/(Timetrace.process_delay *2 * repeats * Timetrace.sampling_rate) -0.5; % q - ((fsett/fmeasure) -2)/2 (zero order hold error)
-internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing
-internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length + phi_shift*2*pi/360); %used in mixing with harmonic
-
+q = q -Timetrace.points_av/(2*repeats) + 0.5; % q - (fsett/fmeasure)/2 (shift error correction)
+internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length); %used in mixing
+internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length); %used in mixing with harmonic
 
 Set_Par(28, round(wave_vec_length/4));
 Set_Par(31, round(wave_vec_length/(4*harmonic)));
@@ -134,6 +133,9 @@ while toc < Timetrace.runtime + 0.5 %waits 0.5s longer just to be sure its done
 end
 close(wb);
 %% ADWIN readout and plot
+
+%CHANGE IT UP: USE OLD SMALL ARRAY APPROACH AND SUM RESULTS AT END OF EACH
+%ARRAY MIGHT BE WAY MORE EFFICIENT
 
 fig = figure('Name', 'Channel Results', 'NumberTitle', 'off', 'Position', [100, 100, 600, 700], 'Color', 'black');
 output = "";
