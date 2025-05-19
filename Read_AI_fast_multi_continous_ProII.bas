@@ -63,8 +63,8 @@
 'used for all channels
 DIM DATA_1[20000] as long  'voltage output array
 DIM DATA_3[20] as float 'filter parameters
-DIM DATA_4[200000] as float 'plain reference frequency for mixing
-DIM DATA_8[200000] as float 'harmonic of plain reference frequency for mixing
+DIM DATA_4[100000] as float 'plain reference frequency for mixing
+DIM DATA_8[100000] as float 'harmonic of plain reference frequency for mixing
 DIM DATA_11[8] as long 'ADC gains
 DIM DATA_15[8] as long 'IV gains
 DIM DATA_10[8] as long 'read Data catch of channels
@@ -338,6 +338,7 @@ EVENT:
       PAR_25 = 0
     ENDIF
   ENDIF
+  repeats = repeats + 1
   
   'here the input gets summed up for each channel
   DATA_17[0] = DATA_17[0] + DATA_10[0]
@@ -483,5 +484,4 @@ EVENT:
     ENDIF
   ENDIF
   
-  repeats = repeats + 1
 FINISH:

@@ -63,8 +63,8 @@
 'used for all channels
 DIM DATA_1[20000] as long  'voltage output array
 DIM DATA_3[20] as float 'filter parameters
-DIM DATA_4[200000] as float 'plain reference frequency for mixing
-DIM DATA_8[200000] as float 'harmonic of plain reference frequency for mixing
+DIM DATA_4[100000] as float 'plain reference frequency for mixing
+DIM DATA_8[100000] as float 'harmonic of plain reference frequency for mixing
 DIM DATA_11[8] as long 'ADC gains
 DIM DATA_15[8] as long 'IV gains
 DIM DATA_10[8] as long 'read Data catch of channels
@@ -74,114 +74,110 @@ DIM DATA_74[5] as long 'lookup table for idx1 to save operation in EVENT
 DIM DATA_75[5] as long 'lookup table for idx2 to save operation in EVENT
 DIM DATA_76[5] as long 'lookup table for idx3 to save operation in EVENT
 DIM DATA_77[5] as long 'lookup table for idx4 to save operation in EVENT
+DIM DATA_79[100] as float 'where the sum of all values is saved for MATLAB to average
 
 'CHANNEL 1
-DIM DATA_2[10] as float 'measured and mixed data inphase
-DIM DATA_7[10] as float 'measured and mixed data quadrature
-DIM DATA_6[500000] as float 'inphase filtered signal
-DIM DATA_5[500000] as float 'quadrature filtered signal
-DIM DATA_9[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_12[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_13[500000] as float 'inphase filtered signal harmonic
-DIM DATA_14[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_2[100] as float 'measured and mixed data inphase
+DIM DATA_7[100] as float 'measured and mixed data quadrature
+DIM DATA_6[100] as float 'inphase filtered signal
+DIM DATA_5[100] as float 'quadrature filtered signal
+DIM DATA_9[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_12[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_13[100] as float 'inphase filtered signal harmonic
+DIM DATA_14[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 2
-DIM DATA_18[10] as float 'measured and mixed data inphase
-DIM DATA_19[10] as float 'measured and mixed data quadrature
-DIM DATA_20[500000] as float 'inphase filtered signal
-DIM DATA_21[500000] as float 'quadrature filtered signal
-DIM DATA_22[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_23[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_24[500000] as float 'inphase filtered signal harmonic
-DIM DATA_25[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_18[100] as float 'measured and mixed data inphase
+DIM DATA_19[100] as float 'measured and mixed data quadrature
+DIM DATA_20[100] as float 'inphase filtered signal
+DIM DATA_21[100] as float 'quadrature filtered signal
+DIM DATA_22[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_23[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_24[100] as float 'inphase filtered signal harmonic
+DIM DATA_25[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 3
-DIM DATA_26[10] as float 'measured and mixed data inphase
-DIM DATA_27[10] as float 'measured and mixed data quadrature
-DIM DATA_28[500000] as float 'inphase filtered signal
-DIM DATA_29[500000] as float 'quadrature filtered signal
-DIM DATA_30[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_31[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_32[500000] as float 'inphase filtered signal harmonic
-DIM DATA_33[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_26[100] as float 'measured and mixed data inphase
+DIM DATA_27[100] as float 'measured and mixed data quadrature
+DIM DATA_28[100] as float 'inphase filtered signal
+DIM DATA_29[100] as float 'quadrature filtered signal
+DIM DATA_30[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_31[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_32[100] as float 'inphase filtered signal harmonic
+DIM DATA_33[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 4
-DIM DATA_34[10] as float 'measured and mixed data inphase
-DIM DATA_35[10] as float 'measured and mixed data quadrature
-DIM DATA_36[500000] as float 'inphase filtered signal
-DIM DATA_37[500000] as float 'quadrature filtered signal
-DIM DATA_38[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_39[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_40[500000] as float 'inphase filtered signal harmonic
-DIM DATA_41[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_34[100] as float 'measured and mixed data inphase
+DIM DATA_35[100] as float 'measured and mixed data quadrature
+DIM DATA_36[100] as float 'inphase filtered signal
+DIM DATA_37[100] as float 'quadrature filtered signal
+DIM DATA_38[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_39[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_40[100] as float 'inphase filtered signal harmonic
+DIM DATA_41[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 5
-DIM DATA_42[10] as float 'measured and mixed data inphase
-DIM DATA_43[10] as float 'measured and mixed data quadrature
-DIM DATA_44[500000] as float 'inphase filtered signal
-DIM DATA_45[500000] as float 'quadrature filtered signal
-DIM DATA_46[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_47[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_48[500000] as float 'inphase filtered signal harmonic
-DIM DATA_49[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_42[100] as float 'measured and mixed data inphase
+DIM DATA_43[100] as float 'measured and mixed data quadrature
+DIM DATA_44[100] as float 'inphase filtered signal
+DIM DATA_45[100] as float 'quadrature filtered signal
+DIM DATA_46[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_47[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_48[100] as float 'inphase filtered signal harmonic
+DIM DATA_49[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 6
-DIM DATA_50[10] as float 'measured and mixed data inphase
-DIM DATA_51[10] as float 'measured and mixed data quadrature
-DIM DATA_52[500000] as float 'inphase filtered signal
-DIM DATA_53[500000] as float 'quadrature filtered signal
-DIM DATA_54[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_55[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_56[500000] as float 'inphase filtered signal harmonic
-DIM DATA_57[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_50[100] as float 'measured and mixed data inphase
+DIM DATA_51[100] as float 'measured and mixed data quadrature
+DIM DATA_52[100] as float 'inphase filtered signal
+DIM DATA_53[100] as float 'quadrature filtered signal
+DIM DATA_54[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_55[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_56[100] as float 'inphase filtered signal harmonic
+DIM DATA_57[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 7
-DIM DATA_58[10] as float 'measured and mixed data inphase
-DIM DATA_59[10] as float 'measured and mixed data quadrature
-DIM DATA_60[500000] as float 'inphase filtered signal
-DIM DATA_61[500000] as float 'quadrature filtered signal
-DIM DATA_62[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_63[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_64[500000] as float 'inphase filtered signal harmonic
-DIM DATA_65[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_58[100] as float 'measured and mixed data inphase
+DIM DATA_59[100] as float 'measured and mixed data quadrature
+DIM DATA_60[100] as float 'inphase filtered signal
+DIM DATA_61[100] as float 'quadrature filtered signal
+DIM DATA_62[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_63[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_64[100] as float 'inphase filtered signal harmonic
+DIM DATA_65[100] as float 'quadrature filtered signal harmonic
 
 'CHANNEL 8
-DIM DATA_66[10] as float 'measured and mixed data inphase
-DIM DATA_67[10] as float 'measured and mixed data quadrature
-DIM DATA_68[500000] as float 'inphase filtered signal
-DIM DATA_69[500000] as float 'quadrature filtered signal
-DIM DATA_70[10] as float 'measured and mixed data inphase harmonic
-DIM DATA_71[10] as float 'measured and mixed data quadrature harmonic
-DIM DATA_72[500000] as float 'inphase filtered signal harmonic
-DIM DATA_73[500000] as float 'quadrature filtered signal harmonic
+DIM DATA_66[100] as float 'measured and mixed data inphase
+DIM DATA_67[100] as float 'measured and mixed data quadrature
+DIM DATA_68[100] as float 'inphase filtered signal
+DIM DATA_69[100] as float 'quadrature filtered signal
+DIM DATA_70[100] as float 'measured and mixed data inphase harmonic
+DIM DATA_71[100] as float 'measured and mixed data quadrature harmonic
+DIM DATA_72[100] as float 'inphase filtered signal harmonic
+DIM DATA_73[100] as float 'quadrature filtered signal harmonic
 
 DIM actual_V as long
 DIM repeats as long
 
 DIM avgcounter as long
-DIM filt_counter as long
 DIM bin1 as long
 DIM output_min, output_max, bin_size as float
 DIM i as long 'for loop counter
 
-DIM sine_index as long
 DIM cosine_index as long
 DIM cosine_index_harm as long
 DIM idx1 as long
 DIM idx2 as long
 DIM idx3 as long
 DIM idx4 as long
-DIM modulated_idx1 as long
-DIM modulated_idx2 as long
-DIM modulated_idx3 as long
-DIM modulated_idx4 as long
 DIM save_index as long
 DIM timecounter as long
+DIM sine_index as long
 
 INIT:
   'initialize counters and vectors
   avgcounter = 0
-  filt_counter = 0
+  timecounter = 0
   
   'convert bin to V
   output_min = -10
@@ -297,14 +293,20 @@ INIT:
   DATA_77[3] = 4
   DATA_77[4] = 0
   
+  
+  FOR i = 0 TO 31
+    DATA_79[i] = 0
+  NEXT
+  
   'start first conversion
   P2_Read_ADCF8_24B(PAR_5, DATA_10, 0)
   P2_START_CONVF(Par_5, 0000000011111111b)
   
   'for setting the DAC
+  repeats = 0 ' counter which counts repeats of each value in voltage array
+  actual_V = DATA_1[0] 'starts at 0 since then you do not have to do Par_23 + 1 and save an operation
   PAR_25 = 0 'Par_25 acts as voltagecounter
-  repeats = 0 ' counts repeats of each value in voltage array
-  actual_V = DATA_1[PAR_25] 'starts at 0 since then you do not have to do Par_23 + 1 and save an operation
+  
   'set DAC to first value
   P2_Write_DAC(Par_6, 1, actual_V)
   P2_Write_DAC(Par_6, 2, actual_V)
@@ -320,11 +322,12 @@ INIT:
   
 EVENT:
   
-  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0) 'whats the 3. input for? if does not work change back to 1!v
+  'how does it work? does it wait?? until conversion or does it run parallel to code?
+  P2_Read_ADCF8_24B(PAR_5, DATA_10, 0) 'whats the 3. input for?
   P2_START_CONVF(Par_5, 0000000011111111b) 'there was 11b
   
+  'if repeated enough, new voltage will be set
   IF (repeats = PAR_30) THEN
-    'CHANNEL 1
     P2_Write_DAC(Par_6, 1, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
     P2_Write_DAC(Par_6, 2, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
     P2_Write_DAC(Par_6, 3, DATA_1[PAR_25]) 'Par_25 acts as voltagecounter
@@ -342,6 +345,7 @@ EVENT:
       PAR_25 = 0
     ENDIF
   ENDIF
+  repeats = repeats + 1
   
   'here the input gets summed up for each channel
   DATA_17[0] = DATA_17[0] + DATA_10[0]
@@ -355,7 +359,7 @@ EVENT:
   
   avgcounter = avgcounter + 1
   
-
+  
   'get averaging
   IF(avgcounter = PAR_21) THEN
     
@@ -371,106 +375,154 @@ EVENT:
     
     'indexes are being set
     sine_index = PAR_25 -1
-    cosine_index = PAR_25 + PAR_28 -1
+    cosine_index = PAR_25 + PAR_28 -1 
     cosine_index_harm = PAR_25 + PAR_31 -1
-    idx1 = PAR_19 - 1
-    idx2 = PAR_19 - 2
-    idx3 = PAR_19 - 3
-    idx4 = PAR_19 - 4
-    modulated_idx1 = DATA_74[filt_counter]
-    modulated_idx1 = DATA_75[filt_counter]
-    modulated_idx1 = DATA_76[filt_counter]
-    modulated_idx1 = DATA_77[filt_counter]
+    idx1 = DATA_74[PAR_19]
+    idx2 = DATA_75[PAR_19]
+    idx3 = DATA_76[PAR_19]
+    idx4 = DATA_77[PAR_19]
+     
     
     'Filtering for all Channels:
     
     'CHANNEL 1
-    DATA_2[filt_counter]= DATA_17[0] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_7[filt_counter]= DATA_17[0] * DATA_4[cosine_index] 'mixing with plain cos
-    DATA_9[filt_counter]= DATA_17[0] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_12[filt_counter]= DATA_17[0] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_2[PAR_19]= DATA_17[0] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_7[PAR_19]= DATA_17[0] * DATA_4[cosine_index] 'mixing with plain cos
+    DATA_9[PAR_19]= DATA_17[0] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_12[PAR_19]= DATA_17[0] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_6[PAR_19] = DATA_3[0]*DATA_2[filt_counter] + DATA_3[1]*DATA_2[modulated_idx1] + DATA_3[2]*DATA_2[modulated_idx2] + DATA_3[3]*DATA_2[modulated_idx3] + DATA_3[4]*DATA_2[modulated_idx4] - DATA_3[6]*DATA_6[idx1] - DATA_3[7]*DATA_6[idx2] - DATA_3[8]*DATA_6[idx3] - DATA_3[9]*DATA_6[idx4]
-    DATA_5[PAR_19] = DATA_3[0]*DATA_7[filt_counter] + DATA_3[1]*DATA_7[modulated_idx1] + DATA_3[2]*DATA_7[modulated_idx2] + DATA_3[3]*DATA_7[modulated_idx3] + DATA_3[4]*DATA_7[modulated_idx4] - DATA_3[6]*DATA_5[idx1] - DATA_3[7]*DATA_5[idx2] - DATA_3[8]*DATA_5[idx3] - DATA_3[9]*DATA_5[idx4]
-    DATA_13[PAR_19] = DATA_3[0]*DATA_9[filt_counter] + DATA_3[1]*DATA_9[modulated_idx1] + DATA_3[2]*DATA_9[modulated_idx2] + DATA_3[3]*DATA_9[modulated_idx3] + DATA_3[4]*DATA_9[modulated_idx4] - DATA_3[6]*DATA_13[idx1] - DATA_3[7]*DATA_13[idx2] - DATA_3[8]*DATA_13[idx3] - DATA_3[9]*DATA_13[idx4]
-    DATA_14[PAR_19] = DATA_3[0]*DATA_12[filt_counter] + DATA_3[1]*DATA_12[modulated_idx1] + DATA_3[2]*DATA_12[modulated_idx2] + DATA_3[3]*DATA_12[modulated_idx3] + DATA_3[4]*DATA_12[modulated_idx4] - DATA_3[6]*DATA_14[idx1] - DATA_3[7]*DATA_14[idx2] - DATA_3[8]*DATA_14[idx3] - DATA_3[9]*DATA_14[idx4]
+    DATA_6[PAR_19] = DATA_3[0]*DATA_2[PAR_19] + DATA_3[1]*DATA_2[idx1] + DATA_3[2]*DATA_2[idx2] + DATA_3[3]*DATA_2[idx3] + DATA_3[4]*DATA_2[idx4] - DATA_3[6]*DATA_6[idx1] - DATA_3[7]*DATA_6[idx2] - DATA_3[8]*DATA_6[idx3] - DATA_3[9]*DATA_6[idx4]
+    DATA_5[PAR_19] = DATA_3[0]*DATA_7[PAR_19] + DATA_3[1]*DATA_7[idx1] + DATA_3[2]*DATA_7[idx2] + DATA_3[3]*DATA_7[idx3] + DATA_3[4]*DATA_7[idx4] - DATA_3[6]*DATA_5[idx1] - DATA_3[7]*DATA_5[idx2] - DATA_3[8]*DATA_5[idx3] - DATA_3[9]*DATA_5[idx4]
+    DATA_13[PAR_19] = DATA_3[0]*DATA_9[PAR_19] + DATA_3[1]*DATA_9[idx1] + DATA_3[2]*DATA_9[idx2] + DATA_3[3]*DATA_9[idx3] + DATA_3[4]*DATA_9[idx4] - DATA_3[6]*DATA_13[idx1] - DATA_3[7]*DATA_13[idx2] - DATA_3[8]*DATA_13[idx3] - DATA_3[9]*DATA_13[idx4]
+    DATA_14[PAR_19] = DATA_3[0]*DATA_12[PAR_19] + DATA_3[1]*DATA_12[idx1] + DATA_3[2]*DATA_12[idx2] + DATA_3[3]*DATA_12[idx3] + DATA_3[4]*DATA_12[idx4] - DATA_3[6]*DATA_14[idx1] - DATA_3[7]*DATA_14[idx2] - DATA_3[8]*DATA_14[idx3] - DATA_3[9]*DATA_14[idx4]
     
     'CHANNEL 2
-    DATA_18[filt_counter]= DATA_17[1] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_19[filt_counter]= DATA_17[1] * DATA_4[cosine_index] 'mixing with plain cos
-    DATA_22[filt_counter]= DATA_17[1] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_23[filt_counter]= DATA_17[1] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_18[PAR_19]= DATA_17[1] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_19[PAR_19]= DATA_17[1] * DATA_4[cosine_index] 'mixing with plain cos
+    DATA_22[PAR_19]= DATA_17[1] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_23[PAR_19]= DATA_17[1] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_20[PAR_19] = DATA_3[0]*DATA_18[filt_counter] + DATA_3[1]*DATA_18[modulated_idx1] + DATA_3[2]*DATA_18[modulated_idx2] + DATA_3[3]*DATA_18[modulated_idx3] + DATA_3[4]*DATA_18[modulated_idx4] - DATA_3[6]*DATA_20[idx1] - DATA_3[7]*DATA_20[idx2] - DATA_3[8]*DATA_20[idx3] - DATA_3[9]*DATA_20[idx4]
-    DATA_21[PAR_19] = DATA_3[0]*DATA_19[filt_counter] + DATA_3[1]*DATA_19[modulated_idx1] + DATA_3[2]*DATA_19[modulated_idx2] + DATA_3[3]*DATA_19[modulated_idx3] + DATA_3[4]*DATA_19[modulated_idx4] - DATA_3[6]*DATA_21[idx1] - DATA_3[7]*DATA_21[idx2] - DATA_3[8]*DATA_21[idx3] - DATA_3[9]*DATA_21[idx4]
-    DATA_24[PAR_19] = DATA_3[0]*DATA_22[filt_counter] + DATA_3[1]*DATA_22[modulated_idx1] + DATA_3[2]*DATA_22[modulated_idx2] + DATA_3[3]*DATA_22[modulated_idx3] + DATA_3[4]*DATA_22[modulated_idx4] - DATA_3[6]*DATA_24[idx1] - DATA_3[7]*DATA_24[idx2] - DATA_3[8]*DATA_24[idx3] - DATA_3[9]*DATA_24[idx4]
-    DATA_25[PAR_19] = DATA_3[0]*DATA_23[filt_counter] + DATA_3[1]*DATA_23[modulated_idx1] + DATA_3[2]*DATA_23[modulated_idx2] + DATA_3[3]*DATA_23[modulated_idx3] + DATA_3[4]*DATA_23[modulated_idx4] - DATA_3[6]*DATA_25[idx1] - DATA_3[7]*DATA_25[idx2] - DATA_3[8]*DATA_25[idx3] - DATA_3[9]*DATA_25[idx4]
+    DATA_20[PAR_19] = DATA_3[0]*DATA_18[PAR_19] + DATA_3[1]*DATA_18[idx1] + DATA_3[2]*DATA_18[idx2] + DATA_3[3]*DATA_18[idx3] + DATA_3[4]*DATA_18[idx4] - DATA_3[6]*DATA_20[idx1] - DATA_3[7]*DATA_20[idx2] - DATA_3[8]*DATA_20[idx3] - DATA_3[9]*DATA_20[idx4]
+    DATA_21[PAR_19] = DATA_3[0]*DATA_19[PAR_19] + DATA_3[1]*DATA_19[idx1] + DATA_3[2]*DATA_19[idx2] + DATA_3[3]*DATA_19[idx3] + DATA_3[4]*DATA_19[idx4] - DATA_3[6]*DATA_21[idx1] - DATA_3[7]*DATA_21[idx2] - DATA_3[8]*DATA_21[idx3] - DATA_3[9]*DATA_21[idx4]
+    DATA_24[PAR_19] = DATA_3[0]*DATA_22[PAR_19] + DATA_3[1]*DATA_22[idx1] + DATA_3[2]*DATA_22[idx2] + DATA_3[3]*DATA_22[idx3] + DATA_3[4]*DATA_22[idx4] - DATA_3[6]*DATA_24[idx1] - DATA_3[7]*DATA_24[idx2] - DATA_3[8]*DATA_24[idx3] - DATA_3[9]*DATA_24[idx4]
+    DATA_25[PAR_19] = DATA_3[0]*DATA_23[PAR_19] + DATA_3[1]*DATA_23[idx1] + DATA_3[2]*DATA_23[idx2] + DATA_3[3]*DATA_23[idx3] + DATA_3[4]*DATA_23[idx4] - DATA_3[6]*DATA_25[idx1] - DATA_3[7]*DATA_25[idx2] - DATA_3[8]*DATA_25[idx3] - DATA_3[9]*DATA_25[idx4]
     
     'CHANNEL 3
-    DATA_26[filt_counter]= DATA_17[2] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_27[filt_counter]= DATA_17[2] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_30[filt_counter]= DATA_17[2] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_31[filt_counter]= DATA_17[2] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_26[PAR_19]= DATA_17[2] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_27[PAR_19]= DATA_17[2] * DATA_4 [cosine_index] 'mixing with plain cos
+    DATA_30[PAR_19]= DATA_17[2] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_31[PAR_19]= DATA_17[2] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_28[PAR_19] = DATA_3[0]*DATA_26[filt_counter] + DATA_3[1]*DATA_26[modulated_idx1] + DATA_3[2]*DATA_26[modulated_idx2] + DATA_3[3]*DATA_26[modulated_idx3] + DATA_3[4]*DATA_26[modulated_idx4] - DATA_3[6]*DATA_28[idx1] - DATA_3[7]*DATA_28[idx2] - DATA_3[8]*DATA_28[idx3] - DATA_3[9]*DATA_28[idx4]
-    DATA_29[PAR_19] = DATA_3[0]*DATA_27[filt_counter] + DATA_3[1]*DATA_27[modulated_idx1] + DATA_3[2]*DATA_27[modulated_idx2] + DATA_3[3]*DATA_27[modulated_idx3] + DATA_3[4]*DATA_27[modulated_idx4] - DATA_3[6]*DATA_29[idx1] - DATA_3[7]*DATA_29[idx2] - DATA_3[8]*DATA_29[idx3] - DATA_3[9]*DATA_29[idx4]
-    DATA_32[PAR_19] = DATA_3[0]*DATA_30[filt_counter] + DATA_3[1]*DATA_30[modulated_idx1] + DATA_3[2]*DATA_30[modulated_idx2] + DATA_3[3]*DATA_30[modulated_idx3] + DATA_3[4]*DATA_30[modulated_idx4] - DATA_3[6]*DATA_32[idx1] - DATA_3[7]*DATA_32[idx2] - DATA_3[8]*DATA_32[idx3] - DATA_3[9]*DATA_32[idx4]
-    DATA_33[PAR_19] = DATA_3[0]*DATA_31[filt_counter] + DATA_3[1]*DATA_31[modulated_idx1] + DATA_3[2]*DATA_31[modulated_idx2] + DATA_3[3]*DATA_31[modulated_idx3] + DATA_3[4]*DATA_31[modulated_idx4] - DATA_3[6]*DATA_33[idx1] - DATA_3[7]*DATA_33[idx2] - DATA_3[8]*DATA_33[idx3] - DATA_3[9]*DATA_33[idx4]
+    DATA_28[PAR_19] = DATA_3[0]*DATA_26[PAR_19] + DATA_3[1]*DATA_26[idx1] + DATA_3[2]*DATA_26[idx2] + DATA_3[3]*DATA_26[idx3] + DATA_3[4]*DATA_26[idx4] - DATA_3[6]*DATA_28[idx1] - DATA_3[7]*DATA_28[idx2] - DATA_3[8]*DATA_28[idx3] - DATA_3[9]*DATA_28[idx4]
+    DATA_29[PAR_19] = DATA_3[0]*DATA_27[PAR_19] + DATA_3[1]*DATA_27[idx1] + DATA_3[2]*DATA_27[idx2] + DATA_3[3]*DATA_27[idx3] + DATA_3[4]*DATA_27[idx4] - DATA_3[6]*DATA_29[idx1] - DATA_3[7]*DATA_29[idx2] - DATA_3[8]*DATA_29[idx3] - DATA_3[9]*DATA_29[idx4]
+    DATA_32[PAR_19] = DATA_3[0]*DATA_30[PAR_19] + DATA_3[1]*DATA_30[idx1] + DATA_3[2]*DATA_30[idx2] + DATA_3[3]*DATA_30[idx3] + DATA_3[4]*DATA_30[idx4] - DATA_3[6]*DATA_32[idx1] - DATA_3[7]*DATA_32[idx2] - DATA_3[8]*DATA_32[idx3] - DATA_3[9]*DATA_32[idx4]
+    DATA_33[PAR_19] = DATA_3[0]*DATA_31[PAR_19] + DATA_3[1]*DATA_31[idx1] + DATA_3[2]*DATA_31[idx2] + DATA_3[3]*DATA_31[idx3] + DATA_3[4]*DATA_31[idx4] - DATA_3[6]*DATA_33[idx1] - DATA_3[7]*DATA_33[idx2] - DATA_3[8]*DATA_33[idx3] - DATA_3[9]*DATA_33[idx4]
     
     'CHANNEL 4
-    DATA_34[filt_counter]= DATA_17[3] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_35[filt_counter]= DATA_17[3] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_38[filt_counter]= DATA_17[3] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_39[filt_counter]= DATA_17[3] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_34[PAR_19]= DATA_17[3] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_35[PAR_19]= DATA_17[3] * DATA_4 [cosine_index] 'mixing with plain cos
+    DATA_38[PAR_19]= DATA_17[3] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_39[PAR_19]= DATA_17[3] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_36[PAR_19] = DATA_3[0]*DATA_34[filt_counter] + DATA_3[1]*DATA_34[modulated_idx1] + DATA_3[2]*DATA_34[modulated_idx2] + DATA_3[3]*DATA_34[modulated_idx3] + DATA_3[4]*DATA_34[modulated_idx4] - DATA_3[6]*DATA_36[idx1] - DATA_3[7]*DATA_36[idx2] - DATA_3[8]*DATA_36[idx3] - DATA_3[9]*DATA_36[idx4]
-    DATA_37[PAR_19] = DATA_3[0]*DATA_35[filt_counter] + DATA_3[1]*DATA_35[modulated_idx1] + DATA_3[2]*DATA_35[modulated_idx2] + DATA_3[3]*DATA_35[modulated_idx3] + DATA_3[4]*DATA_35[modulated_idx4] - DATA_3[6]*DATA_37[idx1] - DATA_3[7]*DATA_37[idx2] - DATA_3[8]*DATA_37[idx3] - DATA_3[9]*DATA_37[idx4]
-    DATA_40[PAR_19] = DATA_3[0]*DATA_38[filt_counter] + DATA_3[1]*DATA_38[modulated_idx1] + DATA_3[2]*DATA_38[modulated_idx2] + DATA_3[3]*DATA_38[modulated_idx3] + DATA_3[4]*DATA_38[modulated_idx4] - DATA_3[6]*DATA_40[idx1] - DATA_3[7]*DATA_40[idx2] - DATA_3[8]*DATA_40[idx3] - DATA_3[9]*DATA_40[idx4]
-    DATA_41[PAR_19] = DATA_3[0]*DATA_39[filt_counter] + DATA_3[1]*DATA_39[modulated_idx1] + DATA_3[2]*DATA_39[modulated_idx2] + DATA_3[3]*DATA_39[modulated_idx3] + DATA_3[4]*DATA_39[modulated_idx4] - DATA_3[6]*DATA_41[idx1] - DATA_3[7]*DATA_41[idx2] - DATA_3[8]*DATA_41[idx3] - DATA_3[9]*DATA_41[idx4]
+    DATA_36[PAR_19] = DATA_3[0]*DATA_34[PAR_19] + DATA_3[1]*DATA_34[idx1] + DATA_3[2]*DATA_34[idx2] + DATA_3[3]*DATA_34[idx3] + DATA_3[4]*DATA_34[idx4] - DATA_3[6]*DATA_36[idx1] - DATA_3[7]*DATA_36[idx2] - DATA_3[8]*DATA_36[idx3] - DATA_3[9]*DATA_36[idx4]
+    DATA_37[PAR_19] = DATA_3[0]*DATA_35[PAR_19] + DATA_3[1]*DATA_35[idx1] + DATA_3[2]*DATA_35[idx2] + DATA_3[3]*DATA_35[idx3] + DATA_3[4]*DATA_35[idx4] - DATA_3[6]*DATA_37[idx1] - DATA_3[7]*DATA_37[idx2] - DATA_3[8]*DATA_37[idx3] - DATA_3[9]*DATA_37[idx4]
+    DATA_40[PAR_19] = DATA_3[0]*DATA_38[PAR_19] + DATA_3[1]*DATA_38[idx1] + DATA_3[2]*DATA_38[idx2] + DATA_3[3]*DATA_38[idx3] + DATA_3[4]*DATA_38[idx4] - DATA_3[6]*DATA_40[idx1] - DATA_3[7]*DATA_40[idx2] - DATA_3[8]*DATA_40[idx3] - DATA_3[9]*DATA_40[idx4]
+    DATA_41[PAR_19] = DATA_3[0]*DATA_39[PAR_19] + DATA_3[1]*DATA_39[idx1] + DATA_3[2]*DATA_39[idx2] + DATA_3[3]*DATA_39[idx3] + DATA_3[4]*DATA_39[idx4] - DATA_3[6]*DATA_41[idx1] - DATA_3[7]*DATA_41[idx2] - DATA_3[8]*DATA_41[idx3] - DATA_3[9]*DATA_41[idx4]
     
     'CHANNEL 5
-    DATA_42[filt_counter]= DATA_17[4] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_43[filt_counter]= DATA_17[4] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_46[filt_counter]= DATA_17[4] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_47[filt_counter]= DATA_17[4] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_42[PAR_19]= DATA_17[4] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_43[PAR_19]= DATA_17[4] * DATA_4 [cosine_index] 'mixing with plain cos
+    DATA_46[PAR_19]= DATA_17[4] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_47[PAR_19]= DATA_17[4] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_44[PAR_19] = DATA_3[0]*DATA_42[filt_counter] + DATA_3[1]*DATA_42[modulated_idx1] + DATA_3[2]*DATA_42[modulated_idx2] + DATA_3[3]*DATA_42[modulated_idx3] + DATA_3[4]*DATA_42[modulated_idx4] - DATA_3[6]*DATA_44[idx1] - DATA_3[7]*DATA_44[idx2] - DATA_3[8]*DATA_44[idx3] - DATA_3[9]*DATA_44[idx4]
-    DATA_45[PAR_19] = DATA_3[0]*DATA_43[filt_counter] + DATA_3[1]*DATA_43[modulated_idx1] + DATA_3[2]*DATA_43[modulated_idx2] + DATA_3[3]*DATA_43[modulated_idx3] + DATA_3[4]*DATA_43[modulated_idx4] - DATA_3[6]*DATA_45[idx1] - DATA_3[7]*DATA_45[idx2] - DATA_3[8]*DATA_45[idx3] - DATA_3[9]*DATA_45[idx4]
-    DATA_48[PAR_19] = DATA_3[0]*DATA_46[filt_counter] + DATA_3[1]*DATA_46[modulated_idx1] + DATA_3[2]*DATA_46[modulated_idx2] + DATA_3[3]*DATA_46[modulated_idx3] + DATA_3[4]*DATA_46[modulated_idx4] - DATA_3[6]*DATA_48[idx1] - DATA_3[7]*DATA_48[idx2] - DATA_3[8]*DATA_48[idx3] - DATA_3[9]*DATA_48[idx4]
-    DATA_49[PAR_19] = DATA_3[0]*DATA_47[filt_counter] + DATA_3[1]*DATA_47[modulated_idx1] + DATA_3[2]*DATA_47[modulated_idx2] + DATA_3[3]*DATA_47[modulated_idx3] + DATA_3[4]*DATA_47[modulated_idx4] - DATA_3[6]*DATA_49[idx1] - DATA_3[7]*DATA_49[idx2] - DATA_3[8]*DATA_49[idx3] - DATA_3[9]*DATA_49[idx4]
+    DATA_44[PAR_19] = DATA_3[0]*DATA_42[PAR_19] + DATA_3[1]*DATA_42[idx1] + DATA_3[2]*DATA_42[idx2] + DATA_3[3]*DATA_42[idx3] + DATA_3[4]*DATA_42[idx4] - DATA_3[6]*DATA_44[idx1] - DATA_3[7]*DATA_44[idx2] - DATA_3[8]*DATA_44[idx3] - DATA_3[9]*DATA_44[idx4]
+    DATA_45[PAR_19] = DATA_3[0]*DATA_43[PAR_19] + DATA_3[1]*DATA_43[idx1] + DATA_3[2]*DATA_43[idx2] + DATA_3[3]*DATA_43[idx3] + DATA_3[4]*DATA_43[idx4] - DATA_3[6]*DATA_45[idx1] - DATA_3[7]*DATA_45[idx2] - DATA_3[8]*DATA_45[idx3] - DATA_3[9]*DATA_45[idx4]
+    DATA_48[PAR_19] = DATA_3[0]*DATA_46[PAR_19] + DATA_3[1]*DATA_46[idx1] + DATA_3[2]*DATA_46[idx2] + DATA_3[3]*DATA_46[idx3] + DATA_3[4]*DATA_46[idx4] - DATA_3[6]*DATA_48[idx1] - DATA_3[7]*DATA_48[idx2] - DATA_3[8]*DATA_48[idx3] - DATA_3[9]*DATA_48[idx4]
+    DATA_49[PAR_19] = DATA_3[0]*DATA_47[PAR_19] + DATA_3[1]*DATA_47[idx1] + DATA_3[2]*DATA_47[idx2] + DATA_3[3]*DATA_47[idx3] + DATA_3[4]*DATA_47[idx4] - DATA_3[6]*DATA_49[idx1] - DATA_3[7]*DATA_49[idx2] - DATA_3[8]*DATA_49[idx3] - DATA_3[9]*DATA_49[idx4]
     
     'CHANNEL 6
-    DATA_50[filt_counter]= DATA_17[5] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_51[filt_counter]= DATA_17[5] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_54[filt_counter]= DATA_17[5] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_55[filt_counter]= DATA_17[5] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_50[PAR_19]= DATA_17[5] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_51[PAR_19]= DATA_17[5] * DATA_4 [cosine_index] 'mixing with plain cos
+    DATA_54[PAR_19]= DATA_17[5] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_55[PAR_19]= DATA_17[5] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_52[PAR_19] = DATA_3[0]*DATA_50[filt_counter] + DATA_3[1]*DATA_50[modulated_idx1] + DATA_3[2]*DATA_50[modulated_idx2] + DATA_3[3]*DATA_50[modulated_idx3] + DATA_3[4]*DATA_50[modulated_idx4] - DATA_3[6]*DATA_52[idx1] - DATA_3[7]*DATA_52[idx2] - DATA_3[8]*DATA_52[idx3] - DATA_3[9]*DATA_52[idx4]
-    DATA_53[PAR_19] = DATA_3[0]*DATA_51[filt_counter] + DATA_3[1]*DATA_51[modulated_idx1] + DATA_3[2]*DATA_51[modulated_idx2] + DATA_3[3]*DATA_51[modulated_idx3] + DATA_3[4]*DATA_51[modulated_idx4] - DATA_3[6]*DATA_53[idx1] - DATA_3[7]*DATA_53[idx2] - DATA_3[8]*DATA_53[idx3] - DATA_3[9]*DATA_53[idx4]
-    DATA_56[PAR_19] = DATA_3[0]*DATA_54[filt_counter] + DATA_3[1]*DATA_54[modulated_idx1] + DATA_3[2]*DATA_54[modulated_idx2] + DATA_3[3]*DATA_54[modulated_idx3] + DATA_3[4]*DATA_54[modulated_idx4] - DATA_3[6]*DATA_56[idx1] - DATA_3[7]*DATA_56[idx2] - DATA_3[8]*DATA_56[idx3] - DATA_3[9]*DATA_56[idx4]
-    DATA_57[PAR_19] = DATA_3[0]*DATA_55[filt_counter] + DATA_3[1]*DATA_55[modulated_idx1] + DATA_3[2]*DATA_55[modulated_idx2] + DATA_3[3]*DATA_55[modulated_idx3] + DATA_3[4]*DATA_55[modulated_idx4] - DATA_3[6]*DATA_57[idx1] - DATA_3[7]*DATA_57[idx2] - DATA_3[8]*DATA_57[idx3] - DATA_3[9]*DATA_57[idx4]
+    DATA_52[PAR_19] = DATA_3[0]*DATA_50[PAR_19] + DATA_3[1]*DATA_50[idx1] + DATA_3[2]*DATA_50[idx2] + DATA_3[3]*DATA_50[idx3] + DATA_3[4]*DATA_50[idx4] - DATA_3[6]*DATA_52[idx1] - DATA_3[7]*DATA_52[idx2] - DATA_3[8]*DATA_52[idx3] - DATA_3[9]*DATA_52[idx4]
+    DATA_53[PAR_19] = DATA_3[0]*DATA_51[PAR_19] + DATA_3[1]*DATA_51[idx1] + DATA_3[2]*DATA_51[idx2] + DATA_3[3]*DATA_51[idx3] + DATA_3[4]*DATA_51[idx4] - DATA_3[6]*DATA_53[idx1] - DATA_3[7]*DATA_53[idx2] - DATA_3[8]*DATA_53[idx3] - DATA_3[9]*DATA_53[idx4]
+    DATA_56[PAR_19] = DATA_3[0]*DATA_54[PAR_19] + DATA_3[1]*DATA_54[idx1] + DATA_3[2]*DATA_54[idx2] + DATA_3[3]*DATA_54[idx3] + DATA_3[4]*DATA_54[idx4] - DATA_3[6]*DATA_56[idx1] - DATA_3[7]*DATA_56[idx2] - DATA_3[8]*DATA_56[idx3] - DATA_3[9]*DATA_56[idx4]
+    DATA_57[PAR_19] = DATA_3[0]*DATA_55[PAR_19] + DATA_3[1]*DATA_55[idx1] + DATA_3[2]*DATA_55[idx2] + DATA_3[3]*DATA_55[idx3] + DATA_3[4]*DATA_55[idx4] - DATA_3[6]*DATA_57[idx1] - DATA_3[7]*DATA_57[idx2] - DATA_3[8]*DATA_57[idx3] - DATA_3[9]*DATA_57[idx4]
     
     'CHANNEL 7
-    DATA_58[filt_counter]= DATA_17[6] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_59[filt_counter]= DATA_17[6] * DATA_4 [cosine_index] 'mixing with plain cos
-    DATA_62[filt_counter]= DATA_17[6] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_63[filt_counter]= DATA_17[6] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_58[PAR_19]= DATA_17[6] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_59[PAR_19]= DATA_17[6] * DATA_4 [cosine_index] 'mixing with plain cos
+    DATA_62[PAR_19]= DATA_17[6] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_63[PAR_19]= DATA_17[6] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_60[PAR_19] = DATA_3[0]*DATA_58[filt_counter] + DATA_3[1]*DATA_58[modulated_idx1] + DATA_3[2]*DATA_58[modulated_idx2] + DATA_3[3]*DATA_58[modulated_idx3] + DATA_3[4]*DATA_58[modulated_idx4] - DATA_3[6]*DATA_60[idx1] - DATA_3[7]*DATA_60[idx2] - DATA_3[8]*DATA_60[idx3] - DATA_3[9]*DATA_60[idx4]
-    DATA_61[PAR_19] = DATA_3[0]*DATA_59[filt_counter] + DATA_3[1]*DATA_59[modulated_idx1] + DATA_3[2]*DATA_59[modulated_idx2] + DATA_3[3]*DATA_59[modulated_idx3] + DATA_3[4]*DATA_59[modulated_idx4] - DATA_3[6]*DATA_61[idx1] - DATA_3[7]*DATA_61[idx2] - DATA_3[8]*DATA_61[idx3] - DATA_3[9]*DATA_61[idx4]
-    DATA_64[PAR_19] = DATA_3[0]*DATA_62[filt_counter] + DATA_3[1]*DATA_62[modulated_idx1] + DATA_3[2]*DATA_62[modulated_idx2] + DATA_3[3]*DATA_62[modulated_idx3] + DATA_3[4]*DATA_62[modulated_idx4] - DATA_3[6]*DATA_64[idx1] - DATA_3[7]*DATA_64[idx2] - DATA_3[8]*DATA_64[idx3] - DATA_3[9]*DATA_64[idx4]
-    DATA_65[PAR_19] = DATA_3[0]*DATA_63[filt_counter] + DATA_3[1]*DATA_63[modulated_idx1] + DATA_3[2]*DATA_63[modulated_idx2] + DATA_3[3]*DATA_63[modulated_idx3] + DATA_3[4]*DATA_63[modulated_idx4] - DATA_3[6]*DATA_65[idx1] - DATA_3[7]*DATA_65[idx2] - DATA_3[8]*DATA_65[idx3] - DATA_3[9]*DATA_65[idx4]
+    DATA_60[PAR_19] = DATA_3[0]*DATA_58[PAR_19] + DATA_3[1]*DATA_58[idx1] + DATA_3[2]*DATA_58[idx2] + DATA_3[3]*DATA_58[idx3] + DATA_3[4]*DATA_58[idx4] - DATA_3[6]*DATA_60[idx1] - DATA_3[7]*DATA_60[idx2] - DATA_3[8]*DATA_60[idx3] - DATA_3[9]*DATA_60[idx4]
+    DATA_61[PAR_19] = DATA_3[0]*DATA_59[PAR_19] + DATA_3[1]*DATA_59[idx1] + DATA_3[2]*DATA_59[idx2] + DATA_3[3]*DATA_59[idx3] + DATA_3[4]*DATA_59[idx4] - DATA_3[6]*DATA_61[idx1] - DATA_3[7]*DATA_61[idx2] - DATA_3[8]*DATA_61[idx3] - DATA_3[9]*DATA_61[idx4]
+    DATA_64[PAR_19] = DATA_3[0]*DATA_62[PAR_19] + DATA_3[1]*DATA_62[idx1] + DATA_3[2]*DATA_62[idx2] + DATA_3[3]*DATA_62[idx3] + DATA_3[4]*DATA_62[idx4] - DATA_3[6]*DATA_64[idx1] - DATA_3[7]*DATA_64[idx2] - DATA_3[8]*DATA_64[idx3] - DATA_3[9]*DATA_64[idx4]
+    DATA_65[PAR_19] = DATA_3[0]*DATA_63[PAR_19] + DATA_3[1]*DATA_63[idx1] + DATA_3[2]*DATA_63[idx2] + DATA_3[3]*DATA_63[idx3] + DATA_3[4]*DATA_63[idx4] - DATA_3[6]*DATA_65[idx1] - DATA_3[7]*DATA_65[idx2] - DATA_3[8]*DATA_65[idx3] - DATA_3[9]*DATA_65[idx4]
     
     'CHANNEL 8
-    DATA_66[filt_counter]= DATA_17[7] * DATA_4[sine_index] 'mixing with plain sine
-    DATA_67[filt_counter]= DATA_17[7] * DATA_4[cosine_index] 'mixing with plain cos
-    DATA_70[filt_counter]= DATA_17[7] * DATA_8[sine_index] 'mixing with harmonic sine
-    DATA_71[filt_counter]= DATA_17[7] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
+    DATA_66[PAR_19]= DATA_17[7] * DATA_4[sine_index] 'mixing with plain sine
+    DATA_67[PAR_19]= DATA_17[7] * DATA_4[cosine_index] 'mixing with plain cos
+    DATA_70[PAR_19]= DATA_17[7] * DATA_8[sine_index] 'mixing with harmonic sine
+    DATA_71[PAR_19]= DATA_17[7] * DATA_8[cosine_index_harm] 'mixing with harmonic cos
     'realtime filtering
-    DATA_68[PAR_19] = DATA_3[0]*DATA_66[filt_counter] + DATA_3[1]*DATA_66[modulated_idx1] + DATA_3[2]*DATA_66[modulated_idx2] + DATA_3[3]*DATA_66[modulated_idx3] + DATA_3[4]*DATA_66[modulated_idx4] - DATA_3[6]*DATA_68[idx1] - DATA_3[7]*DATA_68[idx2] - DATA_3[8]*DATA_68[idx3] - DATA_3[9]*DATA_68[idx4]
-    DATA_69[PAR_19] = DATA_3[0]*DATA_67[filt_counter] + DATA_3[1]*DATA_67[modulated_idx1] + DATA_3[2]*DATA_67[modulated_idx2] + DATA_3[3]*DATA_67[modulated_idx3] + DATA_3[4]*DATA_67[modulated_idx4] - DATA_3[6]*DATA_69[idx1] - DATA_3[7]*DATA_69[idx2] - DATA_3[8]*DATA_69[idx3] - DATA_3[9]*DATA_69[idx4]
-    DATA_72[PAR_19] = DATA_3[0]*DATA_70[filt_counter] + DATA_3[1]*DATA_70[modulated_idx1] + DATA_3[2]*DATA_70[modulated_idx2] + DATA_3[3]*DATA_70[modulated_idx3] + DATA_3[4]*DATA_70[modulated_idx4] - DATA_3[6]*DATA_72[idx1] - DATA_3[7]*DATA_72[idx2] - DATA_3[8]*DATA_72[idx3] - DATA_3[9]*DATA_72[idx4]
-    DATA_73[PAR_19] = DATA_3[0]*DATA_71[filt_counter] + DATA_3[1]*DATA_71[modulated_idx1] + DATA_3[2]*DATA_71[modulated_idx2] + DATA_3[3]*DATA_71[modulated_idx3] + DATA_3[4]*DATA_71[modulated_idx4] - DATA_3[6]*DATA_73[idx1] - DATA_3[7]*DATA_73[idx2] - DATA_3[8]*DATA_73[idx3] - DATA_3[9]*DATA_73[idx4]
+    DATA_68[PAR_19] = DATA_3[0]*DATA_66[PAR_19] + DATA_3[1]*DATA_66[idx1] + DATA_3[2]*DATA_66[idx2] + DATA_3[3]*DATA_66[idx3] + DATA_3[4]*DATA_66[idx4] - DATA_3[6]*DATA_68[idx1] - DATA_3[7]*DATA_68[idx2] - DATA_3[8]*DATA_68[idx3] - DATA_3[9]*DATA_68[idx4]
+    DATA_69[PAR_19] = DATA_3[0]*DATA_67[PAR_19] + DATA_3[1]*DATA_67[idx1] + DATA_3[2]*DATA_67[idx2] + DATA_3[3]*DATA_67[idx3] + DATA_3[4]*DATA_67[idx4] - DATA_3[6]*DATA_69[idx1] - DATA_3[7]*DATA_69[idx2] - DATA_3[8]*DATA_69[idx3] - DATA_3[9]*DATA_69[idx4]
+    DATA_72[PAR_19] = DATA_3[0]*DATA_70[PAR_19] + DATA_3[1]*DATA_70[idx1] + DATA_3[2]*DATA_70[idx2] + DATA_3[3]*DATA_70[idx3] + DATA_3[4]*DATA_70[idx4] - DATA_3[6]*DATA_72[idx1] - DATA_3[7]*DATA_72[idx2] - DATA_3[8]*DATA_72[idx3] - DATA_3[9]*DATA_72[idx4]
+    DATA_73[PAR_19] = DATA_3[0]*DATA_71[PAR_19] + DATA_3[1]*DATA_71[idx1] + DATA_3[2]*DATA_71[idx2] + DATA_3[3]*DATA_71[idx3] + DATA_3[4]*DATA_71[idx4] - DATA_3[6]*DATA_73[idx1] - DATA_3[7]*DATA_73[idx2] - DATA_3[8]*DATA_73[idx3] - DATA_3[9]*DATA_73[idx4]
+    
+    'when filter has settled, solutions get summed
+    IF (timecounter >= PAR_29)THEN
+      'CHANNEL 1
+      DATA_79[0] = DATA_79[0] + DATA_6[PAR_19]
+      DATA_79[1] = DATA_79[1] + DATA_5[PAR_19]
+      DATA_79[2] = DATA_79[2] + DATA_13[PAR_19]
+      DATA_79[3] = DATA_79[3] + DATA_14[PAR_19]
+      
+      'CHANNEL 2
+      DATA_79[4] = DATA_79[4] + DATA_20[PAR_19]
+      DATA_79[5] = DATA_79[5] + DATA_21[PAR_19]
+      DATA_79[6] = DATA_79[6] + DATA_24[PAR_19]
+      DATA_79[7] = DATA_79[7] + DATA_25[PAR_19]
+      
+      'CHANNEL 3
+      DATA_79[8] = DATA_79[8] + DATA_28[PAR_19]
+      DATA_79[9] = DATA_79[9] + DATA_29[PAR_19]
+      DATA_79[10] = DATA_79[10] + DATA_32[PAR_19]
+      DATA_79[11] = DATA_79[11] + DATA_33[PAR_19]
+      
+      'CHANNEL 4
+      DATA_79[12] = DATA_79[12] + DATA_36[PAR_19]
+      DATA_79[13] = DATA_79[13] + DATA_37[PAR_19]
+      DATA_79[14] = DATA_79[14] + DATA_40[PAR_19]
+      DATA_79[15] = DATA_79[15] + DATA_41[PAR_19]
+      
+      'CHANNEL 5
+      DATA_79[16] = DATA_79[16] + DATA_44[PAR_19]
+      DATA_79[17] = DATA_79[17] + DATA_45[PAR_19]
+      DATA_79[18] = DATA_79[18] + DATA_48[PAR_19]
+      DATA_79[19] = DATA_79[19] + DATA_49[PAR_19]
+      
+      'CHANNEL 6
+      DATA_79[20] = DATA_79[20] + DATA_52[PAR_19]
+      DATA_79[21] = DATA_79[21] + DATA_53[PAR_19]
+      DATA_79[22] = DATA_79[22] + DATA_56[PAR_19]
+      DATA_79[23] = DATA_79[23] + DATA_57[PAR_19]
+      
+      'CHANNEL 7
+      DATA_79[24] = DATA_79[24] + DATA_60[PAR_19]
+      DATA_79[25] = DATA_79[25] + DATA_61[PAR_19]
+      DATA_79[26] = DATA_79[26] + DATA_64[PAR_19]
+      DATA_79[27] = DATA_79[27] + DATA_65[PAR_19]
+      
+      'CHANNEL 8
+      DATA_79[28] = DATA_79[28] + DATA_68[PAR_19]
+      DATA_79[29] = DATA_79[29] + DATA_69[PAR_19]
+      DATA_79[30] = DATA_79[30] + DATA_72[PAR_19]
+      DATA_79[31] = DATA_79[31] + DATA_73[PAR_19]
+    ENDIF
     
     
     avgcounter = 0
@@ -484,19 +536,15 @@ EVENT:
     DATA_17[7] = 0
     
     PAR_19 = PAR_19 + 1
+    timecounter = timecounter + 1
     
-    'when predefined number of samples is reached, it terminates
-    IF (PAR_19 = PAR_14) THEN
+    IF (timecounter = PAR_14) THEN
       end
     ENDIF
     
-    filt_counter = filt_counter + 1
-    
-    IF (filt_counter = 5) THEN
-      filt_counter = 0
+    IF (PAR_19 = 5) THEN
+      PAR_19 = 0
     ENDIF
-
   ENDIF
   
-  repeats = repeats + 1
 FINISH:

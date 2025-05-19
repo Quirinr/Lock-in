@@ -18,8 +18,8 @@ Settings.T = [10];   %;
 % NOTE: Be careful when choosing averaging: when effective sampling rate
 % gets to high, filter might get unstable!
 Timetrace.runtime = 10 ;      % s
-Timetrace.scanrate = 100000;       % Hz
-Timetrace.points_av = 20;        % points
+Timetrace.scanrate = 400000;       % Hz
+Timetrace.points_av = 80;        % points
 Timetrace.process_number = 2;        
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_multi_fixed';
@@ -36,7 +36,6 @@ phi_shift = 0; %phase shift in degrees
 RMS = 1;
 
 Timetrace.process_delay = Settings.clockfrequency/Timetrace.scanrate; %computes process delay
-Set_Processdelay(6, Timetrace.process_delay);
 
 wave_vec_length = Timetrace.scanrate/f_wanted;
 repeats = 1;
@@ -97,16 +96,16 @@ order = 4;
 
 [b, a] = butter(order,  cutoff / (Timetrace.sampling_rate / 2), 'low');
 
-% Convert to state-space or transfer function form
+% Calculates filters settling time
 sys = tf(b, a, 1/Timetrace.sampling_rate);    % Discrete-time system with sample time 1/samplingrate
 info = stepinfo(sys); % Compute step response info
 settlingtime = info.SettlingTime; % Extract and display settling time
 disp(['Settling Time: ' num2str(info.SettlingTime) ' seconds']);
 
 %adjusts runtime and runtimecount by adding settling time
-settled_count = settlingtime * Timetrace.sampling_rate;
-Timetrace.runtime = Timetrace.runtime + settlingtime;
-Set_Par(14, Timetrace.runtime_counts + settled_count);
+settling_count = settlingtime * Timetrace.sampling_rate;
+Timetrace.total_runtime = Timetrace.runtime + settlingtime;
+Set_Par(14, Timetrace.runtime_counts + settling_count);
 
 %subtracts the shift introduced by uneven setting/reading
 q = 1:4*wave_vec_length;
@@ -114,6 +113,7 @@ q = q -Timetrace.points_av/(2*repeats) + 0.5; % q - (fsett/fmeasure)/2 (shift er
 internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length); %used in mixing
 internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length); %used in mixing with harmonic
 
+Set_Par(29, settling_count);
 Set_Par(28, round(wave_vec_length/4));
 Set_Par(31, round(wave_vec_length/(4*harmonic)));
 SetData_Double(3, [b, a], 0); %set filter parameters
@@ -122,13 +122,12 @@ SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic
 
 %% run timetrace
 Start_Process(2);
-
+tic;
 %shows waitbar until measurment is complete.
 wb = waitbar(0, 'Measurment in progress...');
-tic;
-while toc < Timetrace.runtime + 0.5 %waits 0.5s longer just to be sure its done
+while toc < Timetrace.total_runtime + 0.5 %waits 0.5s longer just to be sure its done
     elapsed = toc;
-    waitbar(elapsed / (Timetrace.runtime + 1), wb, sprintf('Measurment in progress...'));
+    waitbar(elapsed / (Timetrace.total_runtime+ 1), wb, sprintf('Measurment in progress...'));
     pause(0.05);  % smooth update
 end
 close(wb);
@@ -140,27 +139,12 @@ close(wb);
 fig = figure('Name', 'Channel Results', 'NumberTitle', 'off', 'Position', [100, 100, 600, 700], 'Color', 'black');
 output = "";
 
-% CHANNEL 1: (is seperate since array indexes in GetData_Double are not as ordered
-inphase = mean(GetData_Double(6, settled_count, Timetrace.runtime_counts));
-inphase_harm = mean(GetData_Double(5, settled_count, Timetrace.runtime_counts));
-quadrature = mean(GetData_Double(13, settled_count, Timetrace.runtime_counts));
-quadrature_harm = mean(GetData_Double(14, settled_count, Timetrace.runtime_counts));
-R = sqrt(inphase^2 + quadrature^2);
-Theta = atan2(quadrature, inphase) * 180 / pi;
-R_harm = sqrt(inphase_harm^2 + quadrature_harm^2);
-Theta_harm = atan2(quadrature_harm, inphase_harm) * 180 / pi;
-
-output = output + sprintf("Ch %d Inphase: %.5f    %d. Harm: %.5f\n", 1, inphase, harmonic, inphase_harm);
-output = output + sprintf("Ch %d Quadrature: %.5f    %d. Harm: %.5f\n", 1, quadrature, harmonic, quadrature_harm);
-output = output + sprintf("R: %.5f           %d. Harm: %.5f\n", R, harmonic, R_harm);
-output = output + sprintf("Theta (deg): %.2f     %d. Harm: %.2f\n\n", Theta, harmonic, Theta_harm);
-
-for ch = 2:8
-    offset = (ch-2)*8;
-    inphase = mean(GetData_Double(20+offset, settled_count, Timetrace.runtime_counts));
-    inphase_harm = mean(GetData_Double(24+offset, settled_count, Timetrace.runtime_counts));
-    quadrature = mean(GetData_Double(21+offset, settled_count, Timetrace.runtime_counts));
-    quadrature_harm = mean(GetData_Double(25+offset, settled_count, Timetrace.runtime_counts));
+for ch = 1:8
+    offset = (ch-1)*4;
+    inphase = GetData_Double(79, 0 + offset, 1)/Timetrace.runtime_counts;
+    inphase_harm = GetData_Double(79, 2 + offset, 1)/Timetrace.runtime_counts;
+    quadrature = GetData_Double(79, 1 + offset, 1)/Timetrace.runtime_counts;
+    quadrature_harm = GetData_Double(79, 3 + offset, 1)/Timetrace.runtime_counts;
     
     R = sqrt(inphase^2 + quadrature^2);
     Theta = atan2(quadrature, inphase) * 180 / pi;
@@ -175,7 +159,3 @@ end
 
 uicontrol('Style', 'edit', 'Max', 10, 'Min', 1, 'String', output, 'Position', [10, 10, 580, 680], ...
     'BackgroundColor', 'black', 'ForegroundColor', 'white', 'FontName', 'Consolas', 'FontSize', 11, 'HorizontalAlignment', 'left');
-
-
-
-%prints the values in a window:

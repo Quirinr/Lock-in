@@ -53,7 +53,6 @@ wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Sett
 actual_f = Timetrace.scanrate/(wave_vec_length * repeats);
 fprintf("actual frequency = %f \n", actual_f)
 
-Set_Processdelay(6, Timetrace.process_delay)
 SetData_Double(1, wave_bin, 0);
 Set_Par(23, numel(wave_bin));
 Set_Par(30, repeats);
@@ -114,23 +113,16 @@ Start_Process(2);
 % Create UI figure
 fig = uifigure('Name', ['Channel:', ' x'], 'Position', [100, 100, 600, 700]);
 
-% Number of channels
-numChannels = 8;
-
 % Preallocate label arrays
-labels = gobjects(numChannels, 4); % 4 parameters: I, Q, R, Theta
+labels = gobjects(8, 4); % 4 parameters: I, Q, R, Theta
 
 % Create labels
-for i = 1:numChannels
+for i = 1:8
     y_offset = 650 - (i-1)*80; % spacing between channel blocks
-    labels(i, 1) = uilabel(fig, 'Position', [20, y_offset, 560, 20], ...
-        'Text', sprintf('Ch %d Inphase: ', i));
-    labels(i, 2) = uilabel(fig, 'Position', [20, y_offset - 20, 560, 20], ...
-        'Text', sprintf('Ch %d Quadrature: ', i));
-    labels(i, 3) = uilabel(fig, 'Position', [20, y_offset - 40, 560, 20], ...
-        'Text', sprintf('Ch %d R: ', i));
-    labels(i, 4) = uilabel(fig, 'Position', [300, y_offset - 40, 560, 20], ...
-        'Text', sprintf('Ch %d Theta (deg): ', i));
+    labels(i, 1) = uilabel(fig, 'Position', [20, y_offset, 560, 20], 'Text', sprintf('Ch %d Inphase: ', i));
+    labels(i, 2) = uilabel(fig, 'Position', [20, y_offset - 20, 560, 20], 'Text', sprintf('Ch %d Quadrature: ', i));
+    labels(i, 3) = uilabel(fig, 'Position', [20, y_offset - 40, 560, 20], 'Text', sprintf('Ch %d R: ', i));
+    labels(i, 4) = uilabel(fig, 'Position', [300, y_offset - 40, 560, 20], 'Text', sprintf('Ch %d Theta (deg): ', i));
 end
 
 % Set harmonic number for display (adjust as needed)
@@ -157,7 +149,7 @@ while isvalid(fig)
     labels(1,3).Text = sprintf('R: %.5f                   %d. Harm: %.5f', R, harmonic, R_harm);
     labels(1,4).Text = sprintf('Theta (deg): %.2f         %d. Harm: %.2f', Theta, harmonic, Theta_harm);
 
-    for i = 2:numChannels
+    for i = 2:8
         % Base channel index offset
         base = (i - 2) * 8;
 
