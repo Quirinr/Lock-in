@@ -2,6 +2,7 @@
 clear
 close all hidden
 clc
+
 %% Settings
 
 Settings.save_dir = 'C:\Users\quiri\UserData';         
@@ -17,9 +18,9 @@ Settings.T = [10];   %;
 
 % NOTE: Be careful when choosing averaging: when effective sampling rate
 % gets to high, filter might get unstable!
-Timetrace.runtime = 10 ;      % s
-Timetrace.scanrate = 400000;       % Hz
-Timetrace.points_av = 80;        % points
+Timetrace.runtime = 2 ;      % s
+Timetrace.scanrate = 300000;       % Hz
+Timetrace.points_av = 60;        % points
 Timetrace.process_number = 2;        
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_multi_fixed';
@@ -31,28 +32,29 @@ Settings = Init(Settings);
 Settings = Init_ADwin(Settings, Timetrace);
 
 %% set up sinewave
-f_wanted = 12;
+f_wanted = 23;
 phi_shift = 0; %phase shift in degrees
-RMS = 1;
+RMS = 1; %RMS value of applied signal
 
-Timetrace.process_delay = Settings.clockfrequency/Timetrace.scanrate; %computes process delay
-
+% computes and compresses period length
 wave_vec_length = Timetrace.scanrate/f_wanted;
 repeats = 1;
-
 while wave_vec_length > 10000
     wave_vec_length = wave_vec_length/10;
     repeats = repeats * 10;
 end
-
 wave_vec_length = round(wave_vec_length);
+
+% generates 1 period sine and conveerts it to binned form
 q = 1:wave_vec_length;
-wave = RMS * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360) + RMS * sqrt(2) * cos(q*4*pi/wave_vec_length + phi_shift*2*pi/360);
+wave = RMS * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360);
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
-actual_f = Settings.clockfrequency/(wave_vec_length * repeats * Timetrace.process_delay);
+% computes the actually applied frequency
+actual_f = Timetrace.scanrate/(wave_vec_length * repeats);
 fprintf("actual frequency = %f \n", actual_f)
 
+% loads to ADwin
 SetData_Double(1, wave_bin, 0);
 Set_Par(23, numel(wave_bin));
 Set_Par(30, repeats);
@@ -77,7 +79,6 @@ Set_Par(10, Settings.input_resolution);
 Set_Par(5,Settings.AI_address);
 Set_Par(7,Settings.DIO_address);
 
-
 % set amplifier settings
 IV_gains = [0, 0, 0, 0, 0, 0, 0, 0]; %it will be calculated as 10^(-gain)
 SetData_Double(15, IV_gains, 0);
@@ -88,57 +89,59 @@ Set_Par(21, Timetrace.points_av);
 %% set ADC gains
 SetData_Double(11, Settings.ADC_gain, 0);
 
-%% set realtime filering parameters
+%% set up filtering and mixing
 
-harmonic = 2;   %IDEA: try demodulating harmonic with harmonic reference instead of normal one with DATA_2 abd 7 to localize the problem
+% set realtime filering parameters
 cutoff = 1;
 order = 4;
-
 [b, a] = butter(order,  cutoff / (Timetrace.sampling_rate / 2), 'low');
+SetData_Double(3, [b, a], 0); % set filter parameters
+
+% set up references
+harmonic = 2;
+q = 1:2*wave_vec_length; % 2*length to extend it for 90degree offset
+q = q -Timetrace.points_av/(2*repeats) + 0.5 -1; % q - (fvsett/fvmeasure - 1)/2 subtracts shift of uneven setting/reading
+%the additional -1 stems from the fact that voltage setting happens before mixing: implemented this way because then ADC can work during rest of code
+internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length);
+internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length);
+
+% passes references to ADwin
+SetData_Double(4, internal_reference_wave, 0);
+SetData_Double(8, internal_reference_wave_harm, 0);
+Set_Par(28, round(wave_vec_length/4)); % quarter wavelength (90degree shift)
+Set_Par(31, round(wave_vec_length/(4*harmonic))); % harmonic quarter wavelength (90degree shift)
+
+%% run measurement
 
 % Calculates filters settling time
-sys = tf(b, a, 1/Timetrace.sampling_rate);    % Discrete-time system with sample time 1/samplingrate
-info = stepinfo(sys); % Compute step response info
-settlingtime = info.SettlingTime; % Extract and display settling time
-disp(['Settling Time: ' num2str(info.SettlingTime) ' seconds']);
+sys = tf(b, a, 1/Timetrace.sampling_rate);    % Discrete-time system with sample period 1/samplingrate
+info = stepinfo(sys, 'SettlingTimeThreshold', 0.02); % Compute step response info with 2% settling threshold
+settlingtime = info.SettlingTime; % Extract settling time
 
-%adjusts runtime and runtimecount by adding settling time
+% adjusts runtime and runtimecount by adding settling time
 settling_count = settlingtime * Timetrace.sampling_rate;
 Timetrace.total_runtime = Timetrace.runtime + settlingtime;
+Set_Par(29, settling_count);
 Set_Par(14, Timetrace.runtime_counts + settling_count);
 
-%subtracts the shift introduced by uneven setting/reading
-q = 1:4*wave_vec_length;
-q = q -Timetrace.points_av/(2*repeats) + 0.5; % q - (fsett/fmeasure)/2 (shift error correction)
-internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length); %used in mixing
-internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length); %used in mixing with harmonic
-
-Set_Par(29, settling_count);
-Set_Par(28, round(wave_vec_length/4));
-Set_Par(31, round(wave_vec_length/(4*harmonic)));
-SetData_Double(3, [b, a], 0); %set filter parameters
-SetData_Double(4, internal_reference_wave, 0); %defines normalized reference for mixing, multiple length to simplify cosine in ADBASIC
-SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic reference for mixing, multiple length to simplify cosine in ADBASIC
-
-%% run timetrace
 Start_Process(2);
 tic;
-%shows waitbar until measurment is complete.
+
+% shows waitbar until measurment is complete.
 wb = waitbar(0, 'Measurment in progress...');
-while toc < Timetrace.total_runtime + 0.5 %waits 0.5s longer just to be sure its done
+while toc < Timetrace.total_runtime + 0.5 % waits 0.5s longer just to be sure its done
     elapsed = toc;
     waitbar(elapsed / (Timetrace.total_runtime+ 1), wb, sprintf('Measurment in progress...'));
     pause(0.05);  % smooth update
 end
 close(wb);
-%% ADWIN readout and plot
+%% ADWIN readout and visualization
 
-%CHANGE IT UP: USE OLD SMALL ARRAY APPROACH AND SUM RESULTS AT END OF EACH
-%ARRAY MIGHT BE WAY MORE EFFICIENT
-
+% set up figure
 fig = figure('Name', 'Channel Results', 'NumberTitle', 'off', 'Position', [100, 100, 600, 700], 'Color', 'black');
 output = "";
 
+% reads result for each channel and averages it
 for ch = 1:8
     offset = (ch-1)*4;
     inphase = GetData_Double(79, 0 + offset, 1)/Timetrace.runtime_counts;
@@ -151,11 +154,13 @@ for ch = 1:8
     R_harm = sqrt(inphase_harm^2 + quadrature_harm^2);
     Theta_harm = atan2(quadrature_harm, inphase_harm) * 180 / pi;
     
+    % adds result to output string
     output = output + sprintf("Ch %d Inphase: %.5f    %d. Harm: %.5f\n", ch, inphase, harmonic, inphase_harm);
     output = output + sprintf("Ch %d Quadrature: %.5f    %d. Harm: %.5f\n", ch, quadrature, harmonic, quadrature_harm);
     output = output + sprintf("R: %.5f           %d. Harm: %.5f\n", R, harmonic, R_harm);
     output = output + sprintf("Theta (deg): %.2f     %d. Harm: %.2f\n\n", Theta, harmonic, Theta_harm);
 end
 
+% output window settings
 uicontrol('Style', 'edit', 'Max', 10, 'Min', 1, 'String', output, 'Position', [10, 10, 580, 680], ...
     'BackgroundColor', 'black', 'ForegroundColor', 'white', 'FontName', 'Consolas', 'FontSize', 11, 'HorizontalAlignment', 'left');

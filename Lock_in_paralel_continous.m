@@ -2,8 +2,8 @@
 clear
 close all hidden
 clc
-%% Settings
 
+%% Settings
 Settings.save_dir = 'C:\Users\quiri\UserData';         
 Settings.sample = '100kOhm'; %A2-GatetoGate G0b
 Settings.ADC = {1e6, 'off', 'off','off', 'off', 'off', 'off', 'off'};
@@ -18,7 +18,7 @@ Settings.T = [10];   %;
 % NOTE: Be careful when choosing averaging: when effective sampling rate
 % gets to high, filter might get unstable!
 Timetrace.scanrate = 300000;       % Hz
-Timetrace.points_av = 60;        % points
+Timetrace.points_av = 60;        % points to average
 Timetrace.process_number = 2;        
 Timetrace.model ='ADwin';
 Timetrace.process = 'Read_AI_fast_multi_continous';
@@ -26,33 +26,34 @@ Timetrace.process = 'Read_AI_fast_multi_continous';
 
 %% Initialize
 Settings = Init(Settings);
+
 %% Initialize ADwin
 Settings = Init_ADwin(Settings, Timetrace);
 
 %% set up sinewave
-
-f_wanted = 10;
+f_wanted = 23;
 phi_shift = 0; %phase shift in degrees
-Amplitude = 1;
+RMS = 1; %RMS value of excitation voltage
 
-Timetrace.process_delay = Settings.clockfrequency/Timetrace.scanrate; %computes process delay
-
+% computes and compresses period length
 wave_vec_length = Timetrace.scanrate/f_wanted;
 repeats = 1;
-
 while wave_vec_length > 10000
     wave_vec_length = wave_vec_length/10;
     repeats = repeats * 10;
 end
-
 wave_vec_length = round(wave_vec_length);
+
+% generates 1 period sine and conveerts it to binned form
 q = 1:wave_vec_length;
-wave = Amplitude * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360) + Amplitude * sqrt(2) * cos(q*4*pi/wave_vec_length + phi_shift*2*pi/360);
+wave = RMS * sqrt(2) * cos(q*2*pi/wave_vec_length + phi_shift*2*pi/360);
 wave_bin = convert_V_to_bin(wave, Settings.output_min, Settings.output_max, Settings.output_resolution);
 
+% computes the actually applied frequency
 actual_f = Timetrace.scanrate/(wave_vec_length * repeats);
 fprintf("actual frequency = %f \n", actual_f)
 
+% loads to ADwin
 SetData_Double(1, wave_bin, 0);
 Set_Par(23, numel(wave_bin));
 Set_Par(30, repeats);
@@ -66,9 +67,6 @@ Timetrace.time_per_point = Timetrace.points_av / Timetrace.scanrate; % 1/samplin
 Timetrace.sampling_rate = 1 / Timetrace.time_per_point;
 Set_Processdelay(2, Timetrace.process_delay);
 
-% create time vector
-%Timetrace.time.ADwin = (0:Timetrace.time_per_point:(Timetrace.runtime_counts-1)*Timetrace.time_per_point)';
-
 % set ADCs
 Set_Par(10, Settings.input_resolution);
 
@@ -76,40 +74,43 @@ Set_Par(10, Settings.input_resolution);
 Set_Par(5,Settings.AI_address);
 Set_Par(7,Settings.DIO_address);
 
-
 % set amplifier settings
 IV_gains = [0, 0, 0, 0, 0, 0, 0, 0]; %it will be calculated as 10^(-gain)
 SetData_Double(15, IV_gains, 0);
 
-% Inputs timetrace
+% set averaging
 Set_Par(21, Timetrace.points_av);
 
 %% set ADC gains
 SetData_Double(11, Settings.ADC_gain, 0);
-%% set realtime filering parameters
 
-harmonic = 2;   %IDEA: try demodulating harmonic with harmonic reference instead of normal one with DATA_2 abd 7 to localize the problem
-cutoff = 1;
+%% set up filtering and mixing
+
+% set realtime filering parameters
+cutoff = 0.5;
 order = 4;
-
 [b, a] = butter(order,  cutoff / (Timetrace.sampling_rate / 2), 'low');
+SetData_Double(3, [b, a], 0); % set filter parameters
 
-%subtracts the shift introduced by uneven setting/reading
-q = 1:4*wave_vec_length;
-q = q -Timetrace.points_av/(2*repeats) + 0.5; % q - (fsett/fmeasure)/2 (shift error correction)
-internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length); %used in mixing
-internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length); %used in mixing with harmonic
+% set up references
+harmonic = 2;
+q = 1:2*wave_vec_length; % 2*length to extend it for 90degree offset
+q = q -Timetrace.points_av/(2*repeats) + 0.5 -1; % q - (fvsett/fvmeasure - 1)/2, subtracts shift of uneven setting/reading
+%the additional -1 stems from the fact that voltage setting happens before mixing: implemented this way because then ADC can work during rest of code
+internal_reference_wave =  sqrt(2) * cos(q*2*pi/wave_vec_length);
+internal_reference_wave_harm =  sqrt(2) * cos(harmonic*q*2*pi/wave_vec_length);
 
-Set_Par(28, round(wave_vec_length/4));
-Set_Par(31, round(wave_vec_length/(4*harmonic)));
-SetData_Double(3, [b, a], 0); %set filter parameters
-SetData_Double(4, internal_reference_wave, 0); %defines normalized reference for mixing, multiple length to simplify cosine in ADBASIC
-SetData_Double(8, internal_reference_wave_harm, 0); %defines normailzed harmonic reference for mixing, multiple length to simplify cosine in ADBASIC
+% passes references to ADwin
+SetData_Double(4, internal_reference_wave, 0);
+SetData_Double(8, internal_reference_wave_harm, 0);
+Set_Par(28, round(wave_vec_length/4)); % quarter wavelength (90degree shift)
+Set_Par(31, round(wave_vec_length/(4*harmonic))); % harmonic quarter wavelength (90degree shift)
 
-%% run timetrace
+%% run measurement
 Start_Process(2);
 
-%% ADWIN readout and plot
+%% ADWIN readout and visualization
+
 % Create UI figure
 fig = uifigure('Name', ['Channel:', ' x'], 'Position', [100, 100, 600, 700]);
 
@@ -125,12 +126,16 @@ for i = 1:8
     labels(i, 4) = uilabel(fig, 'Position', [300, y_offset - 40, 560, 20], 'Text', sprintf('Ch %d Theta (deg): ', i));
 end
 
-% Set harmonic number for display (adjust as needed)
-
+% continously reads from ADwin
 while isvalid(fig)
     idx = Get_Par(19);
 
+    % if PAR_19 is read directly bewteen updates this can lead to mistakes: this corrects some of it
+    if idx == 5
+        idx = 4;
+    end
 
+    %CHANNEL 1: is seperate due to unordered array numbering
     % Get main signals
     I = GetData_Double(6, idx, 1);
     Q = GetData_Double(5, idx, 1);
@@ -149,6 +154,7 @@ while isvalid(fig)
     labels(1,3).Text = sprintf('R: %.5f                   %d. Harm: %.5f', R, harmonic, R_harm);
     labels(1,4).Text = sprintf('Theta (deg): %.2f         %d. Harm: %.2f', Theta, harmonic, Theta_harm);
 
+    %reads remaining channels:
     for i = 2:8
         % Base channel index offset
         base = (i - 2) * 8;
@@ -171,6 +177,7 @@ while isvalid(fig)
         labels(i,3).Text = sprintf('R: %.5f                   %d. Harm: %.5f', R, harmonic, R_harm);
         labels(i,4).Text = sprintf('Theta (deg): %.2f         %d. Harm: %.2f', Theta, harmonic, Theta_harm);
     end
-
+    
+    % controlled pause for smoother output
     pause(0.1);
 end
